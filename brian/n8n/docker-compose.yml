@@ -2,7 +2,7 @@ services:
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
-    # Run as root to avoid permission issues with mounted local Mac folders in dev
+    # Run as root to avoid permission issues with mounted local Mac/Windows folders in dev
     user: root
     ports:
       - "5678:5678"
@@ -10,6 +10,7 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=admin
       - N8N_BASIC_AUTH_PASSWORD=admin
+      
       # Connect to Postgres
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
@@ -17,18 +18,29 @@ services:
       - DB_POSTGRESDB_DATABASE=n8n
       - DB_POSTGRESDB_USER=n8n
       - DB_POSTGRESDB_PASSWORD=n8n
+      
       # Allow file access
       - N8N_BLOCK_FILE_ACCESS_TO_N8N=false
+      
       # Timezone (optional but good for scheduling)
       - GENERIC_TIMEZONE=Asia/Hong_Kong
       - TZ=Asia/Hong_Kong
       
-      - N8N_FILE_ACCESS_INCLUDED_DIRECTORIES=/data
+      # DYNAMIC PATH: This passes the exact internal docker path to the n8n workflow
+      - MEMORY_PATH=/data/brian/memory/summary.md
+      
+      # FIXED ENCRYPTION KEY: Prevents credential decryption errors when docker restarts
+      - N8N_ENCRYPTION_KEY=comp3520-super-secret-key-2026
 
     volumes:
       - n8n_data:/home/node/.n8n
-      # Trick n8n by mounting to the allowed folder
-      - /Users/brianho/comp3520-ai:/root/.n8n-files
+      
+      # 🔥 DYNAMIC VOLUME MOUNT 🔥
+      # './../../' refers to the root folder of the cloned repository (comp3520-AI-Assistant)
+      # It maps the ENTIRE repo to '/data' inside the n8n container.
+      # No matter where someone clones this on their Mac/PC, the internal path '/data' is always the same!
+      - ./../../:/data
+      
     depends_on:
       postgres:
         condition: service_healthy
