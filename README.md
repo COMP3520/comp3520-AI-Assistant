@@ -242,37 +242,7 @@ cd comp3520-AI-Assistant
 
 ### Step 2: Prepare Environment Variables (.env)
 
-Create `.env` from the example (if `.env.example` exists):
 
-```bash
-cp .env.example .env
-```
-
-Open `.env` and fill in at least these values:
-
-```env
-# ────────────────────────────────────────────────
-# Required – n8n & general
-# ────────────────────────────────────────────────
-N8N_BASIC_AUTH_ACTIVE=true
-N8N_BASIC_AUTH_USER=admin
-N8N_BASIC_AUTH_PASSWORD=your-strong-password-here
-
-# Telegram Bot (for voice input / approvals)
-TELEGRAM_BOT_TOKEN=your-telegram-bot-token
-
-# Google OAuth credentials (for Gmail, Calendar, Sheets, Drive)
-GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=xxxx
-GOOGLE_REDIRECT_URI=http://localhost:5678/rest/oauth2-credential/callback   # change later if using ngrok
-
-# Optional – if using external Whisper/OpenAI
-OPENAI_API_KEY=sk-...
-
-# Chroma / Postgres passwords (change these!)
-POSTGRES_PASSWORD=supersecret
-CHROMA_SERVER_AUTHN_CREDENTIALS=anothersecret
-```
 
 **Important – Google Credentials setup**  
 1. Go to https://console.cloud.google.com/apis/credentials  
