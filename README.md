@@ -213,22 +213,170 @@ To ensure manageable development, the project is divided into three equal worklo
 
 ## 🚦 Getting Started
 
-1. **Clone & Setup:**
+Here’s a well-structured **README setup section** you can add (or replace) in your project's README.md. It focuses on a clear, step-by-step guide covering:
+
+- Docker setup (assuming `docker-compose.yml` exists in the repo)
+- n8n credentials configuration (including Google OAuth)
+- ngrok setup (for exposing n8n/Streamlit/Telegram webhooks publicly)
+- Streamlit access & run
+
+```markdown
+## Quick Start – Local Development Setup
+
+This project runs as a Docker-based stack with n8n (workflow automation), Ollama (local LLM), Streamlit (UI), and optional public exposure via ngrok.
+
+### Prerequisites
+
+- Docker & Docker Compose installed  
+  → https://docs.docker.com/get-docker/
+- Git
+- (Optional but recommended for public access / Telegram bot)  
+  → ngrok account (free tier works)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/COMP3520/comp3520-AI-Assistant.git
+cd comp3520-AI-Assistant
+```
+
+### Step 2: Prepare Environment Variables (.env)
+
+Create `.env` from the example (if `.env.example` exists):
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and fill in at least these values:
+
+```env
+# ────────────────────────────────────────────────
+# Required – n8n & general
+# ────────────────────────────────────────────────
+N8N_BASIC_AUTH_ACTIVE=true
+N8N_BASIC_AUTH_USER=admin
+N8N_BASIC_AUTH_PASSWORD=your-strong-password-here
+
+# Telegram Bot (for voice input / approvals)
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+
+# Google OAuth credentials (for Gmail, Calendar, Sheets, Drive)
+GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxxx
+GOOGLE_REDIRECT_URI=http://localhost:5678/rest/oauth2-credential/callback   # change later if using ngrok
+
+# Optional – if using external Whisper/OpenAI
+OPENAI_API_KEY=sk-...
+
+# Chroma / Postgres passwords (change these!)
+POSTGRES_PASSWORD=supersecret
+CHROMA_SERVER_AUTHN_CREDENTIALS=anothersecret
+```
+
+**Important – Google Credentials setup**  
+1. Go to https://console.cloud.google.com/apis/credentials  
+2. Create OAuth 2.0 Client ID → Web application  
+3. Add authorized redirect URIs:  
+   - `http://localhost:5678/rest/oauth2-credential/callback` (local)  
+   - Later: your-ngrok-URL/rest/oauth2-credential/callback  
+4. Copy **Client ID** and **Client Secret** → paste into `.env`  
+5. Enable APIs: Gmail API, Google Calendar API, Google Sheets API, Google Drive API (depending on your workflows)
+
+### Step 3: Start the Docker Stack
+
+```bash
+docker compose up -d
+```
+
+Wait ~1–2 minutes for services to be healthy.
+
+Check running containers:
+```bash
+docker compose ps
+```
+
+### Step 4: Initialize Ollama Model (once)
+
+```bash
+docker exec -it ollama ollama pull llama3.2   # or llama3.2:3b if you want smaller
+# or run interactively:
+docker exec -it ollama ollama run llama3.2
+```
+
+### Step 5: Configure n8n (Core Workflows + Credentials)
+
+1. Open n8n UI → http://localhost:5678  
+   Login with credentials from `.env` (admin / your-password)
+
+2. **Set up credentials** (in n8n → Credentials tab):  
+   - Telegram → Bot token from `.env`  
+   - Google → OAuth2 → use the Client ID/Secret from `.env`  
+     → n8n will guide you through Google sign-in & consent  
+   - (Optional) OpenAI / other services if used
+
+3. **Import workflows**  
+   - Go to Workflows → ... → Import from File/URL  
+   - Import files from `n8n_workflows/` folder (e.g. `supervisor_agent.json`, `voice_pipeline.json`, `morning_briefing.json`)  
+   - Activate them
+
+4. Test a simple workflow (e.g. Telegram trigger → LLM → reply)
+
+### Step 6: Expose Services Publicly with ngrok (Telegram webhook, testing, etc.)
+
+Many features (Telegram bot webhook, Google OAuth redirect) require a public HTTPS URL.
+
+1. **Sign up** (free) → https://ngrok.com  
+2. **Download & install ngrok**  
+   - https://ngrok.com/download  
+   - Unzip and move to a folder in your PATH (or run from Downloads)
+
+3. Authenticate (only once):
    ```bash
-   git clone https://github.com/yourname/ai-poc.git
-   cd ai-poc
-   cp .env.example .env
+   ./ngrok authtoken YOUR_AUTH_TOKEN_HERE
    ```
 
-2. **Launch Stack:**
+4. Expose n8n (port 5678):
    ```bash
-   docker-compose up -d
+   ngrok http 5678
    ```
 
-3. **Initialize Models:**
+   → You'll get a URL like `https://abcd-1234.ngrok-free.app`
+
+5. **Update Google OAuth redirect URI** (in Google Console):  
+   Add `https://abcd-1234.ngrok-free.app/rest/oauth2-credential/callback`
+
+6. **Update Telegram webhook** (in n8n Telegram node or via API):  
+   Set webhook to `https://abcd-1234.ngrok-free.app/webhook/xxx`
+
+7. (Optional) Expose Streamlit too:
    ```bash
-   docker exec -it ollama ollama run llama3.2
+   ngrok http 8501   # or whatever port Streamlit uses
    ```
 
-4. **Connect n8n:**
-   Open `http://localhost:5678`, import workflows from `/n8n_workflows`, and authenticate Telegram/Google.
+**Tip**: Use ngrok paid plan or custom domain for static URLs (free URLs change on restart).
+
+### Step 7: Access Streamlit UI
+
+Once running:
+
+- Local: http://localhost:8501 (or the port defined in docker-compose for Streamlit service)  
+- Via ngrok: the https URL from ngrok http 8501
+
+You should see the chat interface / dashboard for interacting with the AI assistant.
+
+### Troubleshooting
+
+- n8n not starting? Check logs: `docker compose logs n8n`  
+- Google OAuth fails? Double-check redirect URI matches exactly  
+- Ollama slow? Make sure you pulled the model  
+- Ports conflict? Change them in `docker-compose.yml`
+
+Enjoy your local-first AI Personal Operations Center! 🚀
+```
+
+Feel free to adjust port numbers, folder names (`n8n_workflows/`), or service names according to your actual `docker-compose.yml`. If your repo has different structure (e.g. no Streamlit service yet), you can add a note like:
+
+> Streamlit is currently under development — you can run it manually via `streamlit run brian/streamlit.py` after installing requirements.
+
+Let me know if you want to add screenshots, architecture diagram section, or more advanced options (e.g. Caddy reverse proxy instead of ngrok).
