@@ -303,7 +303,7 @@ Many features (Telegram bot webhook, Google OAuth redirect) require a public HTT
 
 3. Authenticate (only once):
    ```bash
-   ./ngrok authtoken YOUR_AUTH_TOKEN_HERE
+   ngrok config add-authtoken YOUR_AUTH_TOKEN_HERE
    ```
 
 4. Expose n8n (port 5678):
