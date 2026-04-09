@@ -63,6 +63,27 @@ services:
     volumes:
       - ollama_data:/root/.ollama
 
+  whisper:
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: whisper
+    ports:
+      - "8000:9000"
+    environment:
+      - ASR_MODEL=base
+      - ASR_ENGINE=faster_whisper
+      - PYTHONUNBUFFERED=1
+      - ALLOW_ORIGINS=*
+
+  tts:
+    image: synesthesiam/coqui-tts
+    container_name: tts
+    ports:
+      - "5000:5000"
+    entrypoint: ["tts-server"]
+    command: ["--model_name", "tts_models/en/ljspeech/tacotron2-DDC", "--port", "5000"]
+    environment:
+      - PYTHONUNBUFFERED=1
+
 volumes:
   n8n_data:
   postgres_data:
