@@ -1,0 +1,359 @@
+{
+  "name": "run_local_command",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "task"
+            }
+          ]
+        }
+      },
+      "id": "8fc8e6b7-bc81-41db-ab6c-7dbd5fbaa1c3",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -176,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw  = ($input.first().json.stdout || '').trim().toLowerCase();\nconst task = $('When Executed by Another Workflow').first().json.task || '';\n\nlet os = 'unknown';\nif (raw.includes('darwin'))                                                   os = 'macos';\nelse if (raw.includes('linux'))                                               os = 'linux';\nelse if (raw.includes('windows') || raw.includes('mingw') || raw.includes('cygwin')) os = 'windows';\n\nreturn [{ json: { detectedOS: os, task } }];"
+      },
+      "id": "5d6836f4-8a2e-4491-b300-6798b6e666c6",
+      "name": "Parse OS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.task }}",
+        "options": {
+          "systemMessage": "=You are a multi-platform terminal assistant for macOS, Linux, and Windows.\n\nThe detected OS is: {{ $json.detectedOS }}. Task: {{ $json.task }}.\n\nThe user wants to perform a task on their machine. Convert their plain-English request into the correct shell command for the detected OS.\n\nCRITICAL RULES:\n1. Use ONLY the detected OS above — never output commands for another OS.\n2. Extract file paths, URLs, app names EXACTLY as the user typed them.\n3. Wrap paths that contain spaces in quotes appropriate for the OS.\n4. Respond ONLY with this JSON — no markdown, no backticks, no extra text:\n\n{\"command\":\"<exact shell command for detected OS>\",\"description\":\"<one sentence: what this command does>\",\"os\":\"<macos|linux|windows>\",\"risk\":\"<low|medium|high>\",\"riskReason\":\"<one sentence explaining the risk level>\"}\n\nRisk guide:\n- low   = read-only / open apps / search queries\n- medium = create or modify files / install software / change settings\n- high  = delete files / kill processes / system-wide or irreversible changes "
+        }
+      },
+      "id": "bbb11ebe-f03d-421c-b6fd-271ee8c22c67",
+      "name": "Ollama Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        352,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "id": "f81cb708-ea83-43ff-b165-f76207e6ef8c",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        352,
+        848
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOutput = $input.first().json.output || $input.first().json.text || '';\nconst cleaned   = rawOutput.replace(/```json|```/g, '').trim();\n\nlet parsed;\ntry { \n  parsed = JSON.parse(cleaned); \n} catch (e) {\n  const match = cleaned.match(/{[\\s\\S]*}/);\n  if (match) { \n    try { parsed = JSON.parse(match[0]); } \n    catch (e2) { throw new Error('Cannot parse Ollama output: ' + rawOutput); } \n  } else { \n    throw new Error('Cannot parse Ollama output: ' + rawOutput); \n  }\n}\n\nif (!parsed.command) throw new Error('No command field in: ' + rawOutput);\n\n// 1. Determine the OS\nconst detectedOS = parsed.os || $('Parse OS').first().json.detectedOS;\n\n// 2. Wrap command in PowerShell if on Windows\nlet finalCommand = parsed.command;\nif (detectedOS === 'windows') {\n  // We escape double quotes inside the command so they don't break the wrapper\n  const escapedCommand = parsed.command.replace(/\"/g, '\\\\\"');\n  finalCommand = `powershell -Command \"${escapedCommand}\"`;\n}\n\nconst riskEmoji = { low: '🟢', medium: '🟡', high: '🔴' }[parsed.risk] || '⚪';\n\nreturn [{ json: {\n  command:     finalCommand, // This is now the \"ready-to-run\" command\n  description: parsed.description || '',\n  os:          detectedOS,\n  risk:        parsed.risk || 'low',\n  riskReason:  parsed.riskReason || '',\n  riskEmoji\n}}];"
+      },
+      "id": "3823ac5e-581c-475f-833b-55419411641a",
+      "name": "Parse Ollama JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "approved-check-001",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        672
+      ],
+      "id": "0294f58c-8a5a-4071-92b0-fa6ab5f18615",
+      "name": "Is Approved1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "denied-result-001",
+              "name": "result",
+              "value": "Command was denied by the user.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        768
+      ],
+      "id": "9259bf3c-e0bb-4080-a59e-fc8198999ed8",
+      "name": "Denied Response1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const stdout = $input.first().json.stdout?.trim() || \"\";\nconst stderr = $input.first().json.stderr?.trim() || \"\";\nconst error = $input.first().json.error?.trim() || \"\";\nconst code = $input.first().json.exitCode ?? 0;\n\nconst failed = !!error || code !== 0;\n\nreturn {\n  json: {\n    result: failed\n      ? `Command failed${code !== 0 ? ` (exit ${code})` : \"\"}:\\n${error || stderr || \"No error details.\"}`\n      : `Command executed successfully.${stdout ? `\\n\\`\\`\\`\\n${stdout}\\n\\`\\`\\`` : \"\"}`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        576
+      ],
+      "id": "f12d6e01-86d6-43a7-aae8-e93fa1f4bc47",
+      "name": "Format Result1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success-result-001",
+              "name": "result",
+              "value": "={{ $json.result }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1536,
+        576
+      ],
+      "id": "63950e20-1a17-40ab-b4f9-5317f2b05b71",
+      "name": "Success Response1"
+    },
+    {
+      "parameters": {
+        "command": "=powershell -Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Add-Type -AssemblyName System.Windows.Forms; $nl = [Environment]::NewLine; $msg = 'Action: {{ $json.description.replace(/'/g, \"''\") }}' + $nl + $nl + 'Command: {{ $json.command.replace(/'/g, \"''\") }}' + $nl + $nl + 'Description: {{ $json.riskReason.replace(/'/g, \"''\") }}' + $nl + $nl + 'Risk: {{ $json.riskEmoji }}{{ $json.risk }}' + $nl + $nl + 'Approve?'; $res = [System.Windows.Forms.MessageBox]::Show($msg, 'n8n Approval', 'YesNo'); if($res -eq 'Yes'){'approved'}else{'denied'}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        736,
+        672
+      ],
+      "id": "07dad337-3be6-4cff-85fb-28907ff11eac",
+      "name": "Human in loop"
+    },
+    {
+      "parameters": {
+        "command": "uname -s 2>/dev/null || echo WINDOWS"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        16,
+        672
+      ],
+      "id": "e26b6d39-4094-4c69-8808-1fa3da0aa6d8",
+      "name": "Execute Command1"
+    },
+    {
+      "parameters": {
+        "command": "={{ $('Parse Ollama JSON').item.json.command }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        576
+      ],
+      "id": "7f253f28-e425-42f3-9c74-4e125debedde",
+      "name": "Execute Command3",
+      "alwaysOutputData": false,
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Execute Command1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Agent": {
+      "main": [
+        [
+          {
+            "node": "Parse Ollama JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ollama Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse OS": {
+      "main": [
+        [
+          {
+            "node": "Ollama Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Ollama JSON": {
+      "main": [
+        [
+          {
+            "node": "Human in loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Approved1": {
+      "main": [
+        [
+          {
+            "node": "Execute Command3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Denied Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result1": {
+      "main": [
+        [
+          {
+            "node": "Success Response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human in loop": {
+      "main": [
+        [
+          {
+            "node": "Is Approved1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command1": {
+      "main": [
+        [
+          {
+            "node": "Parse OS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command3": {
+      "main": [
+        [
+          {
+            "node": "Format Result1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Result1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4a2436b5-5feb-4ea4-a2ca-62ef511d0ce4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2cc62b172022bb86832e36ff427a4559220ed05e8b899d2d559b0095b266a815"
+  },
+  "id": "OxXhMaYJ4JBHNspJ",
+  "tags": []
+}

@@ -18,6 +18,11 @@ services:
       - N8N_BLOCK_FILE_ACCESS_TO_N8N=false
       - GENERIC_TIMEZONE=Asia/Hong_Kong
       - TZ=Asia/Hong_Kong
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_RUNNERS_MODE=internal
+      - N8N_COMMUNITY_PACKAGES_ENABLED=true
+      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
+      - N8N_INSTALL_PACKAGES=@tavily/n8n-nodes-tavily
       
       # 🔥 改呢行 - 用 n8n 預設嘅 allowed path
       - MEMORY_PATH=/root/.n8n-files/brian/memory/summary.md
@@ -62,7 +67,14 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+              
 volumes:
   n8n_data:
   postgres_data:

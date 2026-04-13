@@ -1,0 +1,46 @@
+Windows: using powershell(run as administrator)
+----- setup -----
+Start-Service sshd
+
+// check to see if the sshd is started yet
+Get-Service -Name sshd
+
+// (optional) start automatically with the computer, could be not safe
+Set-Service -Name sshd -StartupType Automatic
+
+// set the firewall rule that only allows it to connect to the docker address to enhance safety
+New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -RemoteAddress 172.17.0.0/16
+
+// Generate the SSH Key Pair
+ssh-keygen -t ed25519 -C "n8n-docker" -f "$HOME\.ssh\n8n_key"
+# Press Enter twice to skip passphrase
+
+// Copy public key to the admin authorized_keys location
+$pubKey = Get-Content "$HOME\.ssh\n8n_key.pub" -RAW
+Add-Content -Force -Path "C:\ProgramData\ssh\administrators_authorized_keys" -Value $pubKey
+
+// Fix permissions (required or SSH will reject it)
+icacls "C:\ProgramData\ssh\administrators_authorized_keys" /inheritance:r /grant "SYSTEM:(F)" /grant "ADMINISTRATORS:(F)"
+
+Get-Content "$HOME\.ssh\n8n_key"
+
+// set the default terminal
+New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" `
+  -Name DefaultShell `
+  -Value "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" `
+  -PropertyType String -Force
+
+----- remove -----
+Stop-Service sshd
+Set-Service -Name sshd -StartupType Disabled
+
+Remove-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+
+Remove-NetFirewallRule -Name "sshd"
+
+# Remove the key files
+Remove-Item "$HOME\.ssh\n8n_key" -Force
+Remove-Item "$HOME\.ssh\n8n_key.pub" -Force
+
+# Clear or delete the authorized_keys file
+Remove-Item "C:\ProgramData\ssh\administrators_authorized_keys" -Force

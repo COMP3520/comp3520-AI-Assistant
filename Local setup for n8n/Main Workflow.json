@@ -1,0 +1,1665 @@
+{
+  "name": "Main Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8171c1a2-f7fa-439b-b1a0-d5d766bfc40d",
+      "name": "Serve UI (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        80,
+        96
+      ],
+      "webhookId": "ui-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = `\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>n8n Agent UI</title>\n  <style>\n    :root {\n      --bg-color: #121212;\n      --chat-bg: #1e1e1e;\n      --user-msg: #ea4b71;\n      --bot-msg: #2d2d2d;\n      --text-color: #e0e0e0;\n    }\n    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; height: 100vh; }\n    .chat-container { width: 100%; max-width: 600px; background: var(--chat-bg); display: flex; flex-direction: column; height: 100%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }\n    .header { padding: 20px; border-bottom: 1px solid #333; font-weight: bold; display: flex; align-items: center; gap: 10px; }\n    .header-dot { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; }\n    .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }\n    .message { max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.4; font-size: 15px; }\n    .message.user { align-self: flex-end; background: var(--user-msg); color: white; border-bottom-right-radius: 2px; }\n    .message.bot { align-self: flex-start; background: var(--bot-msg); color: var(--text-color); border-bottom-left-radius: 2px; }\n    .input-area { padding: 20px; border-top: 1px solid #333; display: flex; gap: 10px; align-items: center; }\n    input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2d2d2d; color: white; outline: none; transition: border-color 0.2s; }\n    input:focus { border-color: var(--user-msg); }\n    button { padding: 12px 20px; border-radius: 8px; border: none; background: var(--user-msg); color: white; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }\n    button:hover { opacity: 0.9; }\n    button:disabled { opacity: 0.5; cursor: not-allowed; }\n    #mic-btn { background: #2d2d2d; border: 1px solid #555; font-size: 18px; padding: 10px 14px; flex-shrink: 0; }\n    #mic-btn.recording { background: #ea4b71; border-color: #ea4b71; animation: pulse 1s infinite; }\n    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }\n    .status { font-size: 12px; color: #888; padding: 0 20px 8px; min-height: 18px; }\n  </style>\n</head>\n<body>\n  <div class=\"chat-container\">\n    <div class=\"header\"><div class=\"header-dot\"></div>n8n Agent</div>\n    <div class=\"messages\" id=\"messages\">\n      <div class=\"message bot\">Hello! I am your n8n assistant. You can type or use the 🎤 mic button to speak.</div>\n    </div>\n    <div class=\"status\" id=\"status\"></div>\n    <form class=\"input-area\" id=\"chat-form\">\n      <button type=\"button\" id=\"mic-btn\" title=\"Click to record\">🎤</button>\n      <input type=\"text\" id=\"input\" placeholder=\"Type or speak a message...\" autocomplete=\"off\" />\n      <button type=\"submit\" id=\"send-btn\">Send</button>\n    </form>\n  </div>\n\n  <script>\n    const form = document.getElementById('chat-form');\n    const input = document.getElementById('input');\n    const messages = document.getElementById('messages');\n    const sendBtn = document.getElementById('send-btn');\n    const micBtn = document.getElementById('mic-btn');\n    const status = document.getElementById('status');\n\n    // ── API endpoints ─────────────────────────────\n    const base = window.location.origin + '/webhook-test';\n    const API_URL     = base + '/chat-response';\n    const WHISPER_URL = base + '/whisper-proxy';\n    const TTS_URL     = base + '/tts-proxy';\n\n    // ── Helpers ───────────────────────────────────\n    function setStatus(msg) { status.textContent = msg; }\n\n    function addMessage(text, sender) {\n      const div = document.createElement('div');\n      div.className = 'message ' + sender;\n      div.textContent = text;\n      messages.appendChild(div);\n      messages.scrollTop = messages.scrollHeight;\n    }\n\n    function setUIBusy(busy) {\n      input.disabled = busy;\n      sendBtn.disabled = busy;\n      micBtn.disabled = busy;\n    }\n\n    // ── Send text to n8n, get reply, play TTS ─────\n    async function sendMessage(text) {\n      if (!text.trim()) return;\n      addMessage(text, 'user');\n      input.value = '';\n      setUIBusy(true);\n      setStatus('Agent is thinking...');\n\n      try {\n        const res = await fetch(API_URL, {\n          method: 'POST',\n          headers: { 'Content-Type': 'application/json' },\n          body: JSON.stringify({ message: text })\n        });\n        const raw = await res.text();\n        let reply = 'No response.';\n        try {\n          const data = JSON.parse(raw);\n          reply = data.output || data.content || data.text || raw;\n        } catch {\n          reply = raw;\n        }\n        addMessage(reply, 'bot');\n\n        setStatus('Generating audio...');\n        const ttsRes = await fetch(TTS_URL + '?text=' + encodeURIComponent(reply));\n        if (ttsRes.ok) {\n          const audioBlob = await ttsRes.blob();\n          const audioUrl = URL.createObjectURL(audioBlob);\n          const audio = new Audio(audioUrl);\n          audio.onended = () => URL.revokeObjectURL(audioUrl);\n          await audio.play();\n        }\n        setStatus('');\n      } catch (err) {\n        console.error(err);\n      } finally {\n        setUIBusy(false);\n        input.focus();\n      }\n    }\n\n    // ── Text form submit ──────────────────────────\n    form.addEventListener('submit', (e) => {\n      e.preventDefault();\n      sendMessage(input.value.trim());\n    });\n\n    // ── Voice recording ───────────────────────────\n    let mediaRecorder = null;\n    let audioChunks = [];\n\n    micBtn.addEventListener('click', async () => {\n      if (mediaRecorder && mediaRecorder.state === 'recording') {\n        mediaRecorder.stop();\n        return;\n      }\n\n      try {\n        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });\n        mediaRecorder = new MediaRecorder(stream);\n        audioChunks = [];\n\n        mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);\n\n        mediaRecorder.onstop = async () => {\n          micBtn.classList.remove('recording');\n          micBtn.textContent = '🎤';\n          stream.getTracks().forEach(t => t.stop());\n\n          setStatus('Transcribing...');\n          setUIBusy(true);\n\n          try {\n            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });\n            const formData = new FormData();\n            formData.append('audio_file', audioBlob, 'recording.webm');\n\n            const whisperRes = await fetch(WHISPER_URL, {\n              method: 'POST',\n              body: formData\n            });\n            const whisperData = await whisperRes.json();\n            const transcript = whisperData.text?.trim();\n\n            if (transcript) {\n              setStatus('');\n              setUIBusy(false);\n              await sendMessage(transcript);\n            } else {\n              setStatus(\"Couldn't hear anything — try again.\");\n              setUIBusy(false);\n            }\n          } catch (err) {\n            setStatus('Whisper error: ' + err.message);\n            setUIBusy(false);\n            console.error(err);\n          }\n        };\n\n        mediaRecorder.start();\n        micBtn.classList.add('recording');\n        micBtn.textContent = '⏹';\n        setStatus('Recording... click ⏹ to stop');\n\n      } catch (err) {\n        setStatus('Mic access denied: ' + err.message);\n        console.error(err);\n      }\n    });\n  </script>\n</body>\n</html>\n`;\n\nreturn { html };"
+      },
+      "id": "13079552-230d-48e5-8556-fad1597da79b",
+      "name": "Define HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html"
+              }
+            ]
+          }
+        }
+      },
+      "id": "6fff83dd-743f-4a72-857c-f2c4ddefbf73",
+      "name": "Respond HTML",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        528,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $env.MEMORY_PATH }}",
+        "options": {
+          "dataPropertyName": "data"
+        }
+      },
+      "id": "2607f744-ddf6-497b-a60f-71a4b4478012",
+      "name": "Read Local File (UTF8)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        1072
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "llama3.2:latest",
+          "mode": "list",
+          "cachedResultName": "llama3.2:latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a File Updater.\nTask: Update the \"Current File\" based on the \"User Input\".\n\n### STRICT OUTPUT RULES:\n1. Output ONLY the updated file content.\n2. Do NOT output headers like \"### FILE CONTENT\" or \"### NEW FILE CONTENT\".\n3. Do NOT output <think> tags.\n4. **Standardize Entries**:\n   - Turn \"class tmr 9am\" into \"- Tomorrow 9am: Class\"\n   - Turn \"gym tonight\" into \"- Today Evening: Gym\"\n\n### DATA:\n[Current File]\n{{ $json.data || '' }}\n\n[User Input]\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n\n### RESPONSE (The Updated File Only):"
+            },
+            {
+              "content": "=Please be reminder the exact date and time now is:\n {{ $now }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "da714145-1603-469a-8314-3604409814e6",
+      "name": "Memory Updater",
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        1536
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-response",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8b55cd0e-d761-47bd-bba4-2d29fd9b241d",
+      "name": "Receive Msg (POST)1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        1072
+      ],
+      "webhookId": "msg-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convert the AI's text answer into a binary file object for n8n\nconst textContent = items[0].json.content || \"\";\nconst binaryData = Buffer.from(textContent).toString('base64');\n\nreturn {\n  json: { success: true },\n  binary: {\n    data: {\n      data: binaryData,\n      mimeType: 'text/markdown',\n      fileName: 'summary.md'\n    }\n  }\n};"
+      },
+      "id": "5ecbe5bd-4293-4009-9bd7-fd235ee3ce6b",
+      "name": "Convert to File1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        1536
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $env.MEMORY_PATH }}",
+        "options": {
+          "append": true
+        }
+      },
+      "id": "87ac192a-d0dd-4f06-b99d-351c79bfd5fd",
+      "name": "Save Summary1",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        96,
+        1536
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        976
+      ],
+      "id": "a254a7ec-ef79-4bb3-bc16-2bda7f32dad3",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "content": "# AI agent after receiving the message",
+        "height": 2256,
+        "width": 4144
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1008,
+        640
+      ],
+      "typeVersion": 1,
+      "id": "60a37c67-1fb4-44a5-8bf8-6da22c736353",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# Host the UI",
+        "height": 224,
+        "width": 752
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "339cb22b-5fac-43e9-8762-a296aa9fcf79",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "9be364b0-f35c-4dcd-b8c2-67ed3bc8a659",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Simple",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "52843313-7117-47a1-8841-06daa8c65c76",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Hard",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "af97a00a-880c-4cb4-bc78-7e9c4171e6c9",
+      "name": "Complexity Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        1152,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "f958132c-effb-45cf-98b5-2bac5eae3b4b",
+      "name": "Respond to UI2",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    output: $input.first().json.output || $input.first().json.result\n  }\n};"
+      },
+      "id": "d6afb7f5-ea7e-417c-8191-58174d235612",
+      "name": "Format Response2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "comp3297groupq@gmail.com",
+          "mode": "list",
+          "cachedResultName": "comp3297groupq@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1424,
+        1280
+      ],
+      "id": "d53d6b13-bc88-4a8b-aca8-ca6b60ba454e",
+      "name": "Create an event in Google Calendar2",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "sb9kM9WTNc4BvhUC",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "comp3297groupq@gmail.com",
+          "mode": "list",
+          "cachedResultName": "comp3297groupq@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1536,
+        1760
+      ],
+      "id": "947b5c46-b919-4977-8346-c3f6782e2adc",
+      "name": "Create an event in Google Calendar3",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "sb9kM9WTNc4BvhUC",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $fromAI('Doc_ID_or_URL', ``, 'string') }}",
+        "simple": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Simplify', ``, 'boolean') }}"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        1280
+      ],
+      "id": "3c9fc5e2-7ab0-49ca-a69c-5c82d478e3e7",
+      "name": "Get a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "GWN729eH4GvRY7zy",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Doc_ID_or_URL', ``, 'string') }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('actionFields0_Text', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        1280
+      ],
+      "id": "49a2b5a2-5361-46d2-8834-a6ecc77de07c",
+      "name": "Update a document in Google Docs",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "GWN729eH4GvRY7zy",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Doc_ID_or_URL', ``, 'string') }}"
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        1808,
+        1760
+      ],
+      "id": "70636828-9336-4709-93a2-3aed4b563c5c",
+      "name": "Get a document in Google Docs1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "GWN729eH4GvRY7zy",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Doc_ID_or_URL', ``, 'string') }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('actionFields0_Text', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocsTool",
+      "typeVersion": 2,
+      "position": [
+        1952,
+        1760
+      ],
+      "id": "b1646c71-6aa2-4ac9-b798-8bc69e461608",
+      "name": "Update a document in Google Docs1",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "GWN729eH4GvRY7zy",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        1280
+      ],
+      "id": "ced7023e-c3be-4903-9ad5-629cb5ff89bc",
+      "name": "Search in Tavily",
+      "credentials": {
+        "tavilyApi": {
+          "id": "cwlh6BPNvRtGAHVr",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@tavily/n8n-nodes-tavily.tavilyTool",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        1760
+      ],
+      "id": "57e5fa9d-6095-449e-9e35-c37136d6cca7",
+      "name": "Search in Tavily1",
+      "credentials": {
+        "tavilyApi": {
+          "id": "cwlh6BPNvRtGAHVr",
+          "name": "Tavily account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "comp3297groupq@gmail.com",
+          "mode": "list",
+          "cachedResultName": "comp3297groupq@gmail.com"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1568,
+        1280
+      ],
+      "id": "0fd5869b-00d6-4d0b-a60e-cc319955bd16",
+      "name": "Get many events in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "sb9kM9WTNc4BvhUC",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "comp3297groupq@gmail.com",
+          "mode": "list",
+          "cachedResultName": "comp3297groupq@gmail.com"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1664,
+        1760
+      ],
+      "id": "4094cbfa-4037-4332-a209-10b3ae1f48a1",
+      "name": "Get many events in Google Calendar1",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "sb9kM9WTNc4BvhUC",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful AI assistant with access to the user's calendar, documents, and web search capabilities.\n\n**Current Context:**\n- Date & Time: {{ $now.toFormat('EEEE, MMMM d, yyyy, h:mm a') }} (Hong Kong Time, UTC+8)\n- Today: {{ $now.toFormat('MMMM d, yyyy') }}\n- This year: {{ $now.year }}\n\n**Instructions:**\n1. Use the User Profile below to understand the user's schedule, projects, preferences, and context\n2. Answer naturally and conversationally - don't explicitly mention \"according to your profile\" unless directly relevant\n3. For time-sensitive queries (e.g., \"today\", \"this week\", \"next month\"), use the current date/time above\n4. When interpreting dates without year (e.g., \"21/2\", \"Feb 21\"), assume year {{ $now.year }}\n5. Prioritize using available tools (calendar, documents, web search) over general knowledge when answering\n6. You have access to a shell execution tool. Here is some examples:\n   - Run a command or script on the host machine\n   - Check system status, disk usage, processes, or logs\n   - Manage files on the server\n   - Any task requiring direct terminal/OS access\n   Always describe what command you will run before invoking it.\n\n**User Profile:**\n{{ $('Extract from File').item.json.data || 'No profile data available yet.' }}\n\n**User Query:**\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n\n---\nProvide a helpful, accurate, and contextually relevant response based on the user's query and profile.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1424,
+        944
+      ],
+      "id": "217d39de-128a-4d7c-a39e-cab94e8902b3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        1088
+      ],
+      "id": "4abb6e22-4236-4dd4-8fcf-cbc4e9d5b208",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "==You are a helpful AI assistant with access to the user's calendar, documents, and web search capabilities.\n\n**Current Context:**\n- Date & Time: {{ $now.toFormat('EEEE, MMMM d, yyyy, h:mm a') }} (Hong Kong Time, UTC+8)\n- Today: {{ $now.toFormat('MMMM d, yyyy') }}\n- This year: {{ $now.year }}\n\n**Instructions:**\n1. Use the User Profile below to understand the user's schedule, projects, preferences, and context\n2. Answer naturally and conversationally - don't explicitly mention \"according to your profile\" unless directly relevant\n3. For time-sensitive queries (e.g., \"today\", \"this week\", \"next month\"), use the current date/time above\n4. When interpreting dates without year (e.g., \"21/2\", \"Feb 21\"), assume year {{ $now.year }}\n5. Prioritize using available tools (calendar, documents, web search) over general knowledge when answering\n6. You have access to a shell execution tool. Use it when the user asks to:\n   - Run a command or script on the host machine\n   - Check system status, disk usage, processes, or logs\n   - Manage files on the server\n   - Any task requiring direct terminal/OS access\n   Always describe what command you will run before invoking it.\n\n**User Profile:**\n{{ $('Extract from File').item.json.data || 'No profile data available yet.' }}\n\n**User Query:**\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n\n---\nProvide a helpful, accurate, and contextually relevant response based on the user's query and profile.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1440,
+        1472
+      ],
+      "id": "95f2e60c-a80c-49b5-a1fe-f12462b6d240",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "qwen3:8b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        1616
+      ],
+      "id": "42814917-a491-4890-974a-1957d9a27405",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following three tokens:\n1. Simple\n2. Hard\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- If the input is a factual lookup or formatting task -> Output \"Simple\"\n- If the input requires reasoning, math, coding, or multi-step logic -> Output \"Hard\"\n\n### User Input:\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n"
+      },
+      "id": "5ad3fc94-a7d3-4d1c-b18b-ecbdfcf5ccf6",
+      "name": "Classifier Agent",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        800,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        800,
+        1424
+      ],
+      "id": "61954253-4635-4bf2-9dfa-bd62e734601e",
+      "name": "Ollama Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "OxXhMaYJ4JBHNspJ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OxXhMaYJ4JBHNspJ",
+          "cachedResultName": "run_local_command"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "task": "={{ $json.output }}"
+          },
+          "matchingColumns": [
+            "task"
+          ],
+          "schema": [
+            {
+              "id": "task",
+              "displayName": "task",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1504,
+        720
+      ],
+      "id": "57d42fe6-5d58-4482-85b5-ca9a3c94c17a",
+      "name": "Call 'run_local_command'1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a command task summarizer.\n\nYour ONLY job is to rewrite the user's input into a short, plain English instruction suitable for executing on a local machine.\n\n### Rules:\n- Output ONLY the rewritten task string\n- Write in plain English, imperative form (e.g. \"Open Chrome\", \"Check disk usage\")\n- No JSON, no markdown, no quotes, no punctuation at the end\n- Keep it short — one sentence maximum\n- Do NOT explain what you are doing\n- Do NOT add any other text before or after the task\n\n### User Input:\n{{ $('Receive Msg (POST)1').item.json.body.message }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        848,
+        720
+      ],
+      "id": "3615ec9b-8fcd-45b6-ae17-ecf8138b0fb9",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        848,
+        864
+      ],
+      "id": "64d3385d-c3d5-4d01-88ea-4ea565a4a6b9",
+      "name": "Ollama Chat Model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following four tokens:\n1. command\n2. normal\n3. expense\n4. visualize\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- Output \"command\" if the user wants to do something on the local machine or host system\n- Output \"expense\" if the user is logging a personal spending/expense transaction, such as saying they spent, paid, bought, used, or were charged money\n- Output \"visualize\" if the user asked to visualize the data from the expense\n- Output \"normal\" for everything else\n\n### User Input:\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n"
+      },
+      "id": "e5c5f220-1706-49f7-b582-b9abe43cb7c2",
+      "name": "Classifier Agent1",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        192,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        192,
+        1280
+      ],
+      "id": "f3b54d8e-bb58-4a33-ab86-0582572f9a4b",
+      "name": "Ollama Model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "9be364b0-f35c-4dcd-b8c2-67ed3bc8a659",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "command",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "52843313-7117-47a1-8841-06daa8c65c76",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "normal",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "4ea4d524-f08f-4257-92de-820db6984970",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "5ac28762-dbc6-48c5-b919-48104165ea46",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "visualize",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4821bf2d-85a8-4c12-9dc0-289c3f50a168",
+      "name": "Agent Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        544,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expense extractor. Extract the amount and category from the user's message.\n\nOUTPUT RULES:\n1. Output ONLY valid JSON. No explanation, no markdown, no code blocks.\n2. Use EXACTLY this format: {\"amount\": <number>, \"category\": \"<string>\"}\n3. amount must be a plain number (e.g. 50, not \"$50\")\n4. category must be ONE of: Food, Transport, Shopping, Entertainment, Health, Utilities, Other\n5. If no amount is found, output: {\"amount\": null, \"category\": \"Other\"}\n\nCurrent Time is: {{ $now }}\nUser message: {{ $('Receive Msg (POST)1').item.json.body.message }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        880,
+        1984
+      ],
+      "id": "3e973f41-5ae4-45e3-86f9-8fb3724e94a7",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        880,
+        2128
+      ],
+      "id": "c4cc6f32-e469-4599-be16-a8b1dcf213f7",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "abwT4youa7pGkeXY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output;\nconst cleaned = raw.replace(/```json|```/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  const match = cleaned.match(/\\{.*\\}/s);\n  parsed = match ? JSON.parse(match[0]) : { amount: null, category: \"Other\" };\n}\n\n// Use $now for actual current date + time (Luxon DateTime in n8n)\nconst time = $now\n\nreturn [{ json: { \n  amount: parsed.amount, \n  category: parsed.category,\n  time,\n  raw: $('Receive Msg (POST)1').first().json.body.message\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        1984
+      ],
+      "id": "8a9e9d2b-cc91-4952-a11f-e3fe6f7c07c7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03348049-ca71-42b4-8e68-717a5ad6a854",
+              "leftValue": "={{ $items(\"List data tables\").map(i => i.json.name).includes(\"expenses\") }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1696,
+        2048
+      ],
+      "id": "f0b2d36e-5115-4e8d-ad97-3acded3ef0b1",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1472,
+        2048
+      ],
+      "id": "93dc3848-82e0-4dc4-938f-e1c358489ad3",
+      "name": "List data tables",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "=expenses",
+        "columns": {
+          "column": [
+            {
+              "name": "=amount",
+              "type": "number"
+            },
+            {
+              "name": "category"
+            },
+            {
+              "name": "date",
+              "type": "date"
+            },
+            {
+              "name": "raw"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1888,
+        2192
+      ],
+      "id": "9b9fbb83-1079-4736-a6be-c0fc65bbf9fa",
+      "name": "Create expenses table"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "expenses",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "amount": "={{ $('Code in JavaScript').item.json.amount }}",
+            "category": "={{ $('Code in JavaScript').item.json.category }}",
+            "date": "={{ $('Code in JavaScript').item.json.time }}",
+            "raw": "={{ $('Code in JavaScript').item.json.raw }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw",
+              "displayName": "raw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1888,
+        1952
+      ],
+      "id": "cf116197-ce6d-4b27-8ddd-b976475a4b66",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "589f4826-5e3d-4ea3-aea5-e26cac27d64d",
+              "name": "result",
+              "value": "The expense is successfully added into the database.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2160,
+        1952
+      ],
+      "id": "811142f4-449e-4e61-a25d-0b8548a88a1d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "chartType": "pie",
+        "labelsMode": "array",
+        "labelsArray": "[\"January\", \"February\", \"March\", \"April\", \"May\"]",
+        "data": "=",
+        "chartOptions": {},
+        "datasetOptions": {}
+      },
+      "type": "n8n-nodes-base.quickChart",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        2576
+      ],
+      "id": "0f64cd79-026b-4104-b681-3f1ab01b4669",
+      "name": "QuickChart"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        2576
+      ],
+      "id": "90a19c64-0637-4cb6-9a09-17ab0a63c39a",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "expenses",
+          "mode": "name"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        2576
+      ],
+      "id": "64834820-de14-4b6e-a75c-beee9da9cb56",
+      "name": "Get row(s)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Serve UI (GET)": {
+      "main": [
+        [
+          {
+            "node": "Define HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Define HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Local File (UTF8)": {
+      "main": [
+        [
+          {
+            "node": "Memory Updater",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory Updater": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Msg (POST)1": {
+      "main": [
+        [
+          {
+            "node": "Read Local File (UTF8)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Save Summary1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Classifier Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Complexity Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response2": {
+      "main": [
+        [
+          {
+            "node": "Respond to UI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar2": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document in Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document in Google Docs1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document in Google Docs1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search in Tavily1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many events in Google Calendar1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Format Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classifier Agent": {
+      "main": [
+        [
+          {
+            "node": "Complexity Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classifier Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'run_local_command'1": {
+      "main": [
+        [
+          {
+            "node": "Format Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Call 'run_local_command'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classifier Agent1": {
+      "main": [
+        [
+          {
+            "node": "Agent Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classifier Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classifier Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "List data tables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create expenses table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List data tables": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create expenses table": {
+      "main": [
+        [
+          {
+            "node": "List data tables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Format Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "QuickChart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QuickChart": {
+      "main": [
+        [
+          {
+            "node": "Format Response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ae52d477-202b-4c09-97e0-e8f6f228a9a3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2cc62b172022bb86832e36ff427a4559220ed05e8b899d2d559b0095b266a815"
+  },
+  "id": "OHXZ6ld6hwKrq6TI",
+  "tags": []
+}
