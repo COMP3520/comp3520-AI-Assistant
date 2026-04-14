@@ -26,9 +26,11 @@ services:
       
       # 🔥 改呢行 - 用 n8n 預設嘅 allowed path
       - MEMORY_PATH=/root/.n8n-files/brian/memory/summary.md
-      
+      - N8N_RESTRICT_FILE_ACCESS_TO=
       - N8N_ENCRYPTION_KEY=comp3520-super-secret-key-2026
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - NODE_FUNCTION_ALLOW_BUILTIN=fs,path
+      - NODES_EXCLUDE="[]"
     
     volumes:
       - n8n_data:/home/node/.n8n
