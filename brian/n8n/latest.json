@@ -1,4 +1,5 @@
 {
+  "name": "Main Workflow",
   "nodes": [
     {
       "parameters": {
@@ -297,9 +298,8 @@
       "parameters": {
         "calendar": {
           "__rl": true,
-          "value": "comp3297groupq@gmail.com",
-          "mode": "list",
-          "cachedResultName": "comp3297groupq@gmail.com"
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calendar', ``, 'string') }}",
+          "mode": "id"
         },
         "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
         "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
@@ -324,9 +324,9 @@
       "parameters": {
         "calendar": {
           "__rl": true,
-          "value": "comp3297groupq@gmail.com",
-          "mode": "list",
-          "cachedResultName": "comp3297groupq@gmail.com"
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calendar', ``, 'string') }}",
+          "mode": "id",
+          "__regex": "(^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)"
         },
         "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
         "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
@@ -489,9 +489,8 @@
         "operation": "getAll",
         "calendar": {
           "__rl": true,
-          "value": "comp3297groupq@gmail.com",
-          "mode": "list",
-          "cachedResultName": "comp3297groupq@gmail.com"
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calendar', ``, 'string') }}",
+          "mode": "id"
         },
         "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
         "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
@@ -518,9 +517,9 @@
         "operation": "getAll",
         "calendar": {
           "__rl": true,
-          "value": "comp3297groupq@gmail.com",
-          "mode": "list",
-          "cachedResultName": "comp3297groupq@gmail.com"
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Calendar', ``, 'string') }}",
+          "mode": "id",
+          "__regex": "(^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)"
         },
         "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
         "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
@@ -559,7 +558,7 @@
     },
     {
       "parameters": {
-        "model": "llama3.2:latest",
+        "model": "qwen2.5:7b",
         "options": {
           "temperature": 0.7
         }
@@ -1280,6 +1279,7 @@
       "name": "HTTP Request"
     }
   ],
+  "pinData": {},
   "connections": {
     "Serve UI (GET)": {
       "main": [
@@ -1655,23 +1655,23 @@
         ]
       ]
     },
-    "AI Agent3": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ollama Chat Model3": {
       "ai_languageModel": [
         [
           {
             "node": "AI Agent3",
             "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
             "index": 0
           }
         ]
@@ -1750,17 +1750,6 @@
         ]
       ]
     },
-    "QuickChart": {
-      "main": [
-        [
-          {
-            "node": "Format Response2",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Code in JavaScript1": {
       "main": [
         [
@@ -1772,22 +1761,22 @@
         ]
       ]
     },
-    "Get row(s)": {
+    "QuickChart": {
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Format Response2",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Receive TTS": {
+    "Get row(s)": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Code in JavaScript1",
             "type": "main",
             "index": 0
           }
@@ -1816,6 +1805,17 @@
         ]
       ]
     },
+    "Receive TTS": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "HTTP Request": {
       "main": [
         [
@@ -1828,8 +1828,16 @@
       ]
     }
   },
-  "pinData": {},
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "f14ef499-30bd-4984-8d63-d37a25999e3e",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "bece01e17653611451518fe49e24b76be4a7dd799bc675ccb15e6ca44a1eb7c9"
-  }
+  },
+  "id": "LtbA5uGaTiZO8c9C7iSse",
+  "tags": []
 }

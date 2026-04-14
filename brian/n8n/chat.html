@@ -16,7 +16,11 @@
     .chat-container { width: 100%; max-width: 600px; background: var(--chat-bg); display: flex; flex-direction: column; height: 100%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
     .header { padding: 20px; border-bottom: 1px solid #333; font-weight: bold; display: flex; align-items: center; gap: 10px; }
     .header-dot { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; }
-    .backend-hint { padding: 8px 20px; border-bottom: 1px solid #2a2a2a; font-size: 12px; color: #9a9a9a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .backend-row { padding: 8px 20px; border-bottom: 1px solid #2a2a2a; font-size: 12px; color: #9a9a9a; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .backend-hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .backend-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .mini-btn { background: #232323; border: 1px solid #444; color: #cfcfcf; font-size: 12px; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+    .mini-btn:hover { border-color: #666; }
     .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
     .message-row { display: flex; flex-direction: column; }
     .message-row.user { align-items: flex-end; }
@@ -43,7 +47,12 @@
 <body>
   <div class="chat-container">
     <div class="header"><div class="header-dot"></div>n8n Agent</div>
-    <div class="backend-hint" id="backend-url"></div>
+    <div class="backend-row">
+      <div class="backend-hint" id="backend-url"></div>
+      <div class="backend-actions">
+        <button class="mini-btn" id="reset-backend" type="button" title="Clear saved ngrok backend URL">Reset</button>
+      </div>
+    </div>
     <div class="messages" id="messages">
       <div class="message-row bot">
         <div class="message bot">Hello! I am your n8n assistant. You can type or use the 🎤 mic button to speak.</div>
@@ -65,6 +74,7 @@
     const micBtn = document.getElementById('mic-btn');
     const status = document.getElementById('status');
     const backendHint = document.getElementById('backend-url');
+    const resetBackendBtn = document.getElementById('reset-backend');
 
     const DEFAULT_N8N_BASE_URL = 'http://localhost:5678';
 
@@ -92,12 +102,61 @@
 
     backendHint.textContent = `Backend: ${N8N_BASE_URL}`;
 
+    resetBackendBtn.addEventListener('click', () => {
+      localStorage.removeItem('N8N_BASE_URL');
+      window.location.search = '';
+    });
+
     function setStatus(msg) { status.textContent = msg; }
 
     function setUIBusy(busy) {
       input.disabled = busy;
       sendBtn.disabled = busy;
       micBtn.disabled = busy;
+    }
+
+    function ngrokHeaders(url) {
+      if (url.includes('.ngrok-free.app')) {
+        return { 'ngrok-skip-browser-warning': 'true' };
+      }
+      return {};
+    }
+
+    const PREFERS_LOCAL_TTS = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    function speakWithBrowserTTS(text) {
+      if (!('speechSynthesis' in window)) return false;
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utterance);
+        return true;
+      } catch (_err) {
+        return false;
+      }
+    }
+
+    async function readErrorResponse(res) {
+      const raw = await res.text();
+      const looksLikeNgrokWarning = raw.toLowerCase().includes('ngrok') && raw.toLowerCase().includes('browser warning');
+      if (looksLikeNgrokWarning) {
+        return 'ngrok browser warning page returned. Open backend URL once in browser and continue.';
+      }
+      return raw.slice(0, 200).replace(/\s+/g, ' ');
+    }
+
+    async function parseResponseBody(res) {
+      const contentType = (res.headers.get('content-type') || '').toLowerCase();
+      if (contentType.includes('application/json')) {
+        return await res.json();
+      }
+
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch (_err) {
+        return { output: text };
+      }
     }
 
     // ── Add a user message bubble ─────────────────
@@ -130,31 +189,65 @@
         ttsBtn.disabled = true;
         ttsBtn.classList.add('playing');
         ttsBtn.innerHTML = '⏳ Loading...';
+        setStatus('Generating speech...');
+
+        if (PREFERS_LOCAL_TTS && speakWithBrowserTTS(text)) {
+          ttsBtn.disabled = false;
+          ttsBtn.classList.remove('playing');
+          ttsBtn.innerHTML = '🔊 Play';
+          setStatus('Using built-in browser voice for better mobile compatibility.');
+          return;
+        }
 
         try {
-          const ttsRes = await fetch(TTS_URL + '?text=' + encodeURIComponent(text));
-          if (ttsRes.ok) {
-            const audioBlob = await ttsRes.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            ttsBtn.innerHTML = '🔊 Playing...';
-            audio.play();
-            audio.onended = () => {
-              URL.revokeObjectURL(audioUrl);
-              ttsBtn.disabled = false;
-              ttsBtn.classList.remove('playing');
-              ttsBtn.innerHTML = '🔊 Play';
-            };
-          } else {
-            ttsBtn.innerHTML = '❌ Failed';
+          const ttsRes = await fetch(TTS_URL + '?text=' + encodeURIComponent(text), {
+            headers: ngrokHeaders(TTS_URL)
+          });
+          if (!ttsRes.ok) {
+            const detail = await readErrorResponse(ttsRes);
+            throw new Error(`HTTP ${ttsRes.status}: ${detail}`);
+          }
+
+          const audioBlob = await ttsRes.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+
+          const cleanup = () => {
+            URL.revokeObjectURL(audioUrl);
             ttsBtn.disabled = false;
             ttsBtn.classList.remove('playing');
+            ttsBtn.innerHTML = '🔊 Play';
+            setStatus('');
+          };
+
+          audio.onended = cleanup;
+          audio.onerror = () => {
+            cleanup();
+            if (speakWithBrowserTTS(text)) {
+              setStatus('Remote audio unsupported; switched to browser voice.');
+            } else {
+              setStatus('TTS audio playback failed on this browser.');
+            }
+          };
+
+          ttsBtn.innerHTML = '🔊 Playing...';
+          try {
+            await audio.play();
+          } catch (playErr) {
+            cleanup();
+            if (speakWithBrowserTTS(text)) {
+              setStatus('Browser blocked remote audio; used local speech fallback.');
+            } else {
+              setStatus('TTS blocked by browser autoplay policy. Tap play again.');
+            }
+            console.error('Audio play failed:', playErr);
           }
         } catch (err) {
           console.error('TTS error:', err);
           ttsBtn.innerHTML = '❌ Error';
           ttsBtn.disabled = false;
           ttsBtn.classList.remove('playing');
+          setStatus('TTS error: ' + err.message);
         }
       });
 
@@ -175,15 +268,24 @@
       try {
         const res = await fetch(API_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...ngrokHeaders(API_URL)
+          },
           body: JSON.stringify({ message: text })
         });
-        const data = await res.json();
+
+        if (!res.ok) {
+          const detail = await readErrorResponse(res);
+          throw new Error(`HTTP ${res.status}: ${detail}`);
+        }
+
+        const data = await parseResponseBody(res);
         const reply = data.output || 'No response from agent.';
         addBotMessage(reply);
         setStatus('');
       } catch (err) {
-        addBotMessage('Error: Could not reach the agent.');
+        addBotMessage('Error: ' + err.message);
         console.error(err);
         setStatus('');
       } finally {
@@ -230,9 +332,18 @@
 
             const whisperRes = await fetch(WHISPER_URL, {
               method: 'POST',
+              headers: {
+                ...ngrokHeaders(WHISPER_URL)
+              },
               body: formData
             });
-            const whisperData = await whisperRes.json();
+
+            if (!whisperRes.ok) {
+              const detail = await readErrorResponse(whisperRes);
+              throw new Error(`HTTP ${whisperRes.status}: ${detail}`);
+            }
+
+            const whisperData = await parseResponseBody(whisperRes);
             const transcript = whisperData.text?.trim();
 
             if (transcript) {
