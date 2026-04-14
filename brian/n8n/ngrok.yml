@@ -1,0 +1,10 @@
+version: 3
+
+tunnels:
+  chat:
+    proto: http
+    addr: 8080
+
+  n8n:
+    proto: http
+    addr: 5678

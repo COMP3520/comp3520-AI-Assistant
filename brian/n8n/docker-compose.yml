@@ -91,7 +91,7 @@ services:
     image: synesthesiam/coqui-tts
     container_name: tts
     ports:
-      - "5000:5000"
+      - "5010:5000"
     entrypoint: ["tts-server"]
     command: ["--model_name", "tts_models/en/ljspeech/tacotron2-DDC", "--port", "5000"]
     environment:

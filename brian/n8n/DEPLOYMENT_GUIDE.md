@@ -29,14 +29,42 @@ First, make sure your n8n backend is running locally.
 
 Since Streamlit Cloud is on the internet, it cannot talk to your `localhost`. We use ngrok to create a secure public URL.
 
-1. Open a **new** terminal window.
-2. Start ngrok pointing to your n8n port:
-   ```bash
-   ngrok http 5678
+For free ngrok accounts, run multiple tunnels from a single agent.
+
+1. In `brian/n8n/ngrok.yml`, set your real authtoken:
+   ```yaml
+   version: 3
+   agent:
+     authtoken: YOUR_NGROK_AUTHTOKEN
+   tunnels:
+     chat:
+       proto: http
+       addr: 8080
+     n8n:
+       proto: http
+       addr: 5678
    ```
-3. You will see a screen with a `Forwarding` URL. 
-   Copy the **HTTPS URL** (e.g., `https://b6d5-175-159-182-197.ngrok-free.app`). 
-   *Leave this terminal running!*
+2. Start both tunnels together:
+   ```bash
+   ngrok start --all --config ./ngrok.yml
+   ```
+3. Keep this terminal running. You will get two HTTPS forwarding URLs:
+   - one for `chat` (port `8080`)
+   - one for `n8n` (port `5678`)
+
+### Local static chat page (optional)
+
+If you are using `chat.html` directly:
+
+1. Start static hosting:
+   ```bash
+   python3 -m http.server 8080
+   ```
+2. Open the chat tunnel URL with the n8n tunnel URL as a query parameter:
+   ```text
+   https://<chat-ngrok-domain>/chat.html?n8nBase=https://<n8n-ngrok-domain>
+   ```
+3. `chat.html` saves `n8nBase` in localStorage, so you only need to pass it again when it changes.
 
 ---
 
@@ -66,8 +94,11 @@ Wait a minute for the app to build. Your AI Agent UI is now live on the cloud!
 
 Because the free version of ngrok changes your URL every time you restart your computer or the ngrok terminal, you will need to update Streamlit Cloud when this happens:
 
-1. Start ngrok again: `ngrok http 5678`
-2. Copy the **new** HTTPS URL.
+1. Start ngrok again with both tunnels:
+   ```bash
+   ngrok start --all --config ./ngrok.yml
+   ```
+2. Copy the **new n8n HTTPS URL** (port `5678` tunnel).
 3. Go to your Streamlit Cloud Dashboard.
 4. Click the **⋮ (three dots)** menu next to your app and select **Settings**.
 5. Go to the **Secrets** tab.
