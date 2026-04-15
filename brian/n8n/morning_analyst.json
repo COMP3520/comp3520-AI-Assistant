@@ -1,0 +1,221 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "c7349271-1d3e-4ee9-956e-8fd207e7b3a4",
+      "name": "Morning Schedule (7 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -480,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "khaiyuan2003@gmail.com",
+          "mode": "list",
+          "cachedResultName": "khaiyuan2003@gmail.com"
+        },
+        "returnAll": true,
+        "timeMin": "={{ $now.startOf('day').toISO() }}",
+        "timeMax": "={{ $now.endOf('day').toISO() }}",
+        "options": {
+          "orderBy": "startTime"
+        }
+      },
+      "id": "046cfdf3-44bc-4674-a799-c159e38eed2a",
+      "name": "Get Today's Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        784
+      ],
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "JMYmqGGXnwMHLOtL",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 30,
+        "filters": {
+          "q": "=(subject:urgent OR from:@hsbc.com) after:{{ $now.minus({hours:12}).toFormat('yyyy/MM/dd') }}"
+        }
+      },
+      "id": "a9e32003-5f4b-4897-bd7d-5fc618f63e64",
+      "name": "Get Overnight Emails",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        32,
+        784
+      ],
+      "webhookId": "ff1b0165-2f44-4869-b7bb-897626fc4a6b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AQskK6rJH6LW961y",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Pull data from upstream nodes ─────────────────────────────────────────\nconst calItems   = $(\"Get Today's Calendar\").all();\nconst emailItems = $('Get Overnight Emails').all();\n\n// ── Calendar ───────────────────────────────────────────────────────────────\nconst eventLines = calItems.map(i => {\n  const e      = i.json;\n  const title  = e.summary || '(Untitled)';\n  const start  = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').slice(0, 16);\n  const end    = (e.end?.dateTime   || e.end?.date   || '').replace('T', ' ').slice(11, 16);\n  const where  = e.location ? ` @ ${e.location}` : '';\n  const status = e.status === 'tentative' ? ' ⚠️ Tentative' : '';\n  return `• ${title}  [${start}${end ? '–' + end : ''}${where}]${status}`;\n});\nconst calSection = eventLines.length\n  ? eventLines.join('\\n')\n  : '(No calendar events today)';\n\n// ── Emails ─────────────────────────────────────────────────────────────────\nconst emailLines = emailItems.map(i => {\n  const e       = i.json;\n  const from    = e.From    || e.from    || 'Unknown';\n  const subject = e.Subject || e.subject || '(no subject)';\n  const snippet = (e.snippet || '').slice(0, 160);\n  return `• FROM: ${from}\\n  SUBJ: ${subject}\\n  …${snippet}`;\n});\nconst emailSection = emailLines.length\n  ? emailLines.join('\\n\\n')\n  : '(No urgent or HSBC emails in the last 12 hours)';\n\n// ── Timestamp ──────────────────────────────────────────────────────────────\nconst dateLabel = $now.toFormat('EEEE, MMMM d, yyyy');\nconst timeLabel = $now.toFormat('h:mm a');\n\nreturn [{ json: { calSection, emailSection, dateLabel, timeLabel } }];\n"
+      },
+      "id": "8834a944-c2a9-46b4-a786-55dde10a082d",
+      "name": "Build Briefing Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "llama3.2:latest",
+          "mode": "list",
+          "cachedResultName": "llama3.2:latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a sharp, concise executive assistant briefing a busy professional. Today is {{ $json.dateLabel }}, {{ $json.timeLabel }} (Hong Kong, UTC+8). Write ONLY the briefing — no preamble, no sign-off, no commentary outside the structure below.\n\nOutput in clean plain text (no markdown bold, no asterisks). Use the section headers exactly as shown.\n\n=== MORNING BRIEFING — {{ $json.dateLabel }} ===\n\nMARKETS\nDiscuss global/Hong Kong market updates today. 2-3 sentences.\n\nTODAY'S SCHEDULE\nList every event. Flag any conflicts, tight turnarounds, or prep needed.\n\nOVERNIGHT EMAILS — URGENT / HSBC\nSummarise each email: sender, topic, required action. One bullet per email.\n\nACTION ITEMS BEFORE NOON\nNumbered list. Derive concrete next steps from schedule, emails, and market context. Be specific.\n\n---\nSOURCE DATA\n\nCalendar:\n{{ $json.calSection }}\n\nEmails:\n{{ $json.emailSection }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ae4363fb-e842-4d5e-b2b9-51f23e773d88",
+      "name": "Morning Analyst Agent",
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        592,
+        784
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "XQvwAMitZi5PX9rY",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=khaiyuan2003@gmail.com",
+        "subject": "={{ '🌅 Morning Briefing — ' + $('Build Briefing Context').first().json.dateLabel }}",
+        "emailType": "text",
+        "message": "={{ $json.content }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "8e6a968d-c8a6-45b1-a6c9-9bfda5e68e51",
+      "name": "Send Morning Briefing",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        784
+      ],
+      "webhookId": "6f5229f8-77ee-45fd-b8f1-b96ed6bdfb0b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "AQskK6rJH6LW961y",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Morning Schedule (7 AM)": {
+      "main": [
+        [
+          {
+            "node": "Get Today's Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Today's Calendar": {
+      "main": [
+        [
+          {
+            "node": "Get Overnight Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Overnight Emails": {
+      "main": [
+        [
+          {
+            "node": "Build Briefing Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Briefing Context": {
+      "main": [
+        [
+          {
+            "node": "Morning Analyst Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Morning Analyst Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Morning Briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "084b59e4-0b46-451e-8f77-e266dbd21d50",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bece01e17653611451518fe49e24b76be4a7dd799bc675ccb15e6ca44a1eb7c9"
+  },
+  "id": "KcP77VlF9yqkst3Z",
+  "tags": []
+}
