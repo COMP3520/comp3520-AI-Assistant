@@ -26,9 +26,9 @@
         "operation": "getAll",
         "calendar": {
           "__rl": true,
-          "value": "<email@gmail.com>",
+          "value": "email@gmail.com",
           "mode": "list",
-          "cachedResultName": "<email@gmail.com>"
+          "cachedResultName": "email@gmail.com"
         },
         "returnAll": true,
         "timeMin": "={{ $now.startOf('day').toISO() }}",
