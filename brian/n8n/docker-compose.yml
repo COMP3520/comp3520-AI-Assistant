@@ -22,7 +22,6 @@ services:
       - N8N_RUNNERS_MODE=internal
       - N8N_COMMUNITY_PACKAGES_ENABLED=true
       - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
-      - N8N_INSTALL_PACKAGES=@tavily/n8n-nodes-tavily
       
       # 🔥 改呢行 - 用 n8n 預設嘅 allowed path
       - MEMORY_PATH=/root/.n8n-files/brian/memory/summary.md
@@ -43,9 +42,6 @@ services:
         condition: service_healthy
       ollama:
         condition: service_started
-
-
-
 
   postgres:
     image: postgres:16

@@ -1315,7 +1315,7 @@
         -656,
         2976
       ],
-      "alwaysOutputData": true
+      "alwaysOutputData": true,
       "credentials": {
         "googleCalendarOAuth2Api": {
           "id": "JMYmqGGXnwMHLOtL",
