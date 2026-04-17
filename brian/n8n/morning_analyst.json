@@ -45,6 +45,7 @@
         -224,
         784
       ],
+      "alwaysOutputData": true,
       "credentials": {
         "googleCalendarOAuth2Api": {
           "id": "JMYmqGGXnwMHLOtL",
