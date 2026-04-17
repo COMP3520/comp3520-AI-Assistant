@@ -1296,9 +1296,9 @@
         "operation": "getAll",
         "calendar": {
           "__rl": true,
-          "value": "khaiyuan2003@gmail.com",
+          "value": "email@gmail.com",
           "mode": "list",
-          "cachedResultName": "khaiyuan2003@gmail.com"
+          "cachedResultName": "email@gmail.com"
         },
         "returnAll": true,
         "timeMin": "={{ $now.startOf('day').toISO() }}",
@@ -1393,7 +1393,7 @@
     },
     {
       "parameters": {
-        "sendTo": "=khaiyuan2003@gmail.com",
+        "sendTo": "=email@gmail.com",
         "subject": "={{ '🌅 Morning Briefing — ' + $('Build Briefing Context').first().json.dateLabel }}",
         "emailType": "text",
         "message": "={{ $json.content }}",
