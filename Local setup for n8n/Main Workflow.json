@@ -1,5 +1,4 @@
 {
-  "name": "Main Workflow",
   "nodes": [
     {
       "parameters": {
@@ -12,8 +11,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
       "position": [
-        3680,
-        336
+        2704,
+        688
       ],
       "webhookId": "ui-webhook"
     },
@@ -26,8 +25,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3904,
-        336
+        2928,
+        688
       ]
     },
     {
@@ -50,8 +49,8 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        4128,
-        336
+        3152,
+        688
       ]
     },
     {
@@ -81,7 +80,7 @@
         "messages": {
           "values": [
             {
-              "content": "=You are a File Updater.\nTask: Update the \"Current File\" based on the \"User Input\".\n\n### STRICT OUTPUT RULES:\n1. Output ONLY the updated file content.\n2. Do NOT output headers like \"### FILE CONTENT\" or \"### NEW FILE CONTENT\".\n3. Do NOT output <think> tags.\n4. **Standardize Entries**:\n   - Turn \"class tmr 9am\" into \"- Tomorrow 9am: Class\"\n   - Turn \"gym tonight\" into \"- Today Evening: Gym\"\n\n### DATA:\n[Current File]\n{{ $json.data || '' }}\n\n[User Input]\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n\n### RESPONSE (The Updated File Only):"
+              "content": "=You are a File Updater.\nTask: Update the \"Current File\" based on the \"User Input\".\n\n### STRICT OUTPUT RULES:\n1. Output ONLY the updated file content.\n2. Do NOT output headers like \"### FILE CONTENT\" or \"### NEW FILE CONTENT\".\n3. Do NOT output <think> tags.\n4. **Standardize Entries**:\n   - Turn \"class tmr 9am\" into \"- Tomorrow 9am: Class\"\n   - Turn \"gym tonight\" into \"- Today Evening: Gym\"\n\n### DATA:\n[Current File]\n{{ $json.data || '' }}\n\n[User Input]\n{{ $('Receive Msg (POST)').item.json.body.message }}\n\n### RESPONSE (The Updated File Only):"
             },
             {
               "content": "=Please be reminder the exact date and time now is:\n {{ $now }}"
@@ -95,7 +94,7 @@
       "type": "@n8n/n8n-nodes-langchain.ollama",
       "typeVersion": 1,
       "position": [
-        3280,
+        3168,
         2112
       ],
       "credentials": {
@@ -104,23 +103,6 @@
           "name": "Ollama account"
         }
       }
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "chat-response",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "9e193d21-ec10-4bb7-8a5e-7e80da53f799",
-      "name": "Receive Msg (POST)1",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [
-        2688,
-        1648
-      ],
-      "webhookId": "msg-webhook"
     },
     {
       "parameters": {
@@ -169,13 +151,13 @@
     {
       "parameters": {
         "content": "# AI agent after receiving the message",
-        "height": 2400,
+        "height": 2688,
         "width": 4432
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2560,
-        896
+        2624,
+        864
       ],
       "typeVersion": 1,
       "id": "8fe7c0f8-e28f-4862-9561-3b8fd25541ac",
@@ -189,8 +171,8 @@
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3600,
-        240
+        2624,
+        592
       ],
       "typeVersion": 1,
       "id": "94d79b2a-3baa-428f-b677-d1b1c82e81f9",
@@ -284,19 +266,6 @@
     },
     {
       "parameters": {
-        "jsCode": "const src = $input.first().json;\n\nreturn [{\n  json: {\n    output: src.chartUrl || src.url || src.output || src.result || ''\n  }\n}];"
-      },
-      "id": "fd5b7db2-8be0-4f57-bbf2-01aa46a56569",
-      "name": "Format Response2",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        6624,
-        1984
-      ]
-    },
-    {
-      "parameters": {
         "calendar": {
           "__rl": true,
           "value": "comp3297groupq@gmail.com",
@@ -337,8 +306,8 @@
       "type": "n8n-nodes-base.googleCalendarTool",
       "typeVersion": 1.3,
       "position": [
-        4944,
-        2272
+        4928,
+        2432
       ],
       "id": "3f0a646a-ca98-4201-9133-9323b67f9b1c",
       "name": "Create an event in Google Calendar3",
@@ -407,7 +376,7 @@
       "typeVersion": 2,
       "position": [
         5216,
-        2272
+        2432
       ],
       "id": "a40e7555-ba96-43b6-a2aa-ba1a8072ead4",
       "name": "Get a document in Google Docs1",
@@ -434,8 +403,8 @@
       "type": "n8n-nodes-base.googleDocsTool",
       "typeVersion": 2,
       "position": [
-        5360,
-        2272
+        5376,
+        2432
       ],
       "id": "d9b67fb0-3a45-4695-b980-9b58fcfc3491",
       "name": "Update a document in Google Docs1",
@@ -454,7 +423,7 @@
       "type": "@tavily/n8n-nodes-tavily.tavilyTool",
       "typeVersion": 1,
       "position": [
-        5440,
+        5424,
         1792
       ],
       "id": "22a2c2fe-0ab9-4784-bf45-2fe352b4741d",
@@ -474,8 +443,8 @@
       "type": "@tavily/n8n-nodes-tavily.tavilyTool",
       "typeVersion": 1,
       "position": [
-        5504,
-        2272
+        5520,
+        2432
       ],
       "id": "85c9eac8-f32c-452e-a5d7-343d81eba61d",
       "name": "Search in Tavily1",
@@ -533,7 +502,7 @@
       "typeVersion": 1.3,
       "position": [
         5072,
-        2272
+        2432
       ],
       "id": "7a8c41f1-99af-44d8-a549-897c6ba9f7c1",
       "name": "Get many events in Google Calendar1",
@@ -543,21 +512,6 @@
           "name": "Google Calendar account"
         }
       }
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=You are a helpful AI assistant with access to the user's calendar, documents, and web search capabilities.\n\n**Current Context:**\n- Date & Time: {{ $now.toFormat('EEEE, MMMM d, yyyy, h:mm a') }} (Hong Kong Time, UTC+8)\n- Today: {{ $now.toFormat('MMMM d, yyyy') }}\n- This year: {{ $now.year }}\n\n**Instructions:**\n1. Use the User Profile below to understand the user's schedule, projects, preferences, and context\n2. Answer naturally and conversationally - don't explicitly mention \"according to your profile\" unless directly relevant\n3. For time-sensitive queries (e.g., \"today\", \"this week\", \"next month\"), use the current date/time above\n4. When interpreting dates without year (e.g., \"21/2\", \"Feb 21\"), assume year {{ $now.year }}\n5. Prioritize using available tools (calendar, documents, web search) over general knowledge when answering\n6. You have access to a shell execution tool. Here is some examples:\n   - Run a command or script on the host machine\n   - Check system status, disk usage, processes, or logs\n   - Manage files on the server\n   - Any task requiring direct terminal/OS access\n   Always describe what command you will run before invoking it.\n\n**User Profile:**\n{{ $('Extract from File').item.json.data || 'No profile data available yet.' }}\n\n**User Query:**\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n\n---\nProvide a helpful, accurate, and contextually relevant response based on the user's query and profile.\n",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        4848,
-        1520
-      ],
-      "id": "855739c7-b75b-4dbf-bd0f-6b6e9867017d",
-      "name": "AI Agent"
     },
     {
       "parameters": {
@@ -583,29 +537,14 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "==You are a helpful AI assistant with access to the user's calendar, documents, and web search capabilities.\n\n**Current Context:**\n- Date & Time: {{ $now.toFormat('EEEE, MMMM d, yyyy, h:mm a') }} (Hong Kong Time, UTC+8)\n- Today: {{ $now.toFormat('MMMM d, yyyy') }}\n- This year: {{ $now.year }}\n\n**Instructions:**\n1. Use the User Profile below to understand the user's schedule, projects, preferences, and context\n2. Answer naturally and conversationally - don't explicitly mention \"according to your profile\" unless directly relevant\n3. For time-sensitive queries (e.g., \"today\", \"this week\", \"next month\"), use the current date/time above\n4. When interpreting dates without year (e.g., \"21/2\", \"Feb 21\"), assume year {{ $now.year }}\n5. Prioritize using available tools (calendar, documents, web search) over general knowledge when answering\n6. You have access to a shell execution tool. Use it when the user asks to:\n   - Run a command or script on the host machine\n   - Check system status, disk usage, processes, or logs\n   - Manage files on the server\n   - Any task requiring direct terminal/OS access\n   Always describe what command you will run before invoking it.\n\n**User Profile:**\n{{ $('Extract from File').item.json.data || 'No profile data available yet.' }}\n\n**User Query:**\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n\n---\nProvide a helpful, accurate, and contextually relevant response based on the user's query and profile.\n",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        4848,
-        1984
-      ],
-      "id": "438bcd84-6c2a-4b80-bc81-d9097e3f8592",
-      "name": "AI Agent1"
-    },
-    {
-      "parameters": {
         "model": "qwen3:8b",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        4848,
-        2128
+        4832,
+        2288
       ],
       "id": "17a149d1-78ae-423a-8a9b-80a6dfad58a7",
       "name": "Ollama Chat Model1",
@@ -619,7 +558,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following three tokens:\n1. Simple\n2. Hard\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- If the input is a factual lookup or formatting task -> Output \"Simple\"\n- If the input requires reasoning, math, coding, or multi-step logic -> Output \"Hard\"\n\n### User Input:\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n"
+        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following three tokens:\n1. Simple\n2. Hard\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- If the input is a factual lookup or formatting task -> Output \"Simple\"\n- If the input requires reasoning, math, coding, or multi-step logic -> Output \"Hard\"\n\n### User Input:\n{{ $('Receive Msg (POST)').item.json.body.message }}\n"
       },
       "id": "72d39c74-dbb2-431a-b36d-64785e97980b",
       "name": "Classifier Agent",
@@ -652,24 +591,6 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=You are a command task summarizer.\n\nYour ONLY job is to rewrite the user's input into a short, plain English instruction suitable for executing on a local machine.\n\n### Rules:\n- Output ONLY the rewritten task string\n- Write in plain English, imperative form (e.g. \"Open Chrome\", \"Check disk usage\")\n- No JSON, no markdown, no quotes, no punctuation at the end\n- Keep it short — one sentence maximum\n- Do NOT explain what you are doing\n- Do NOT add any other text before or after the task\n\n### User Input:\n{{ $('Receive Msg (POST)1').item.json.body.message }}",
-        "hasOutputParser": true,
-        "options": {
-          "systemMessage": "You are a helpful assistant"
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        4064,
-        1200
-      ],
-      "id": "488b6189-4c45-4fe6-89ed-69b30896cd7f",
-      "name": "AI Agent2"
-    },
-    {
-      "parameters": {
         "model": "llama3.2:latest",
         "options": {}
       },
@@ -690,20 +611,6 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following four tokens:\n1. command\n2. normal\n3. expense\n4. visualize\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- Output \"command\" if the user wants to do something on the local machine or host system\n- Output \"expense\" if the user is logging a personal spending/expense transaction, such as saying they spent, paid, bought, used, or were charged money\n- Output \"visualize\" if the user asked to visualize the data from the expense\n- Output \"normal\" for everything else\n\n### User Input:\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n"
-      },
-      "id": "a45f526d-8bc4-49d8-aa6d-b87603146ce2",
-      "name": "Classifier Agent1",
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.4,
-      "position": [
-        3376,
-        1648
-      ]
-    },
-    {
-      "parameters": {
         "model": "llama3.2:latest",
         "options": {}
       },
@@ -721,6 +628,1233 @@
           "name": "Ollama account"
         }
       }
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        4272,
+        3024
+      ],
+      "id": "4d846e06-b9d2-425b-9bf8-c2f417c8eb9f",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "JbjAzk6sO4GuD8Io",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "=expenses",
+        "columns": {
+          "column": [
+            {
+              "name": "amount",
+              "type": "number"
+            },
+            {
+              "name": "category"
+            },
+            {
+              "name": "date",
+              "type": "date"
+            },
+            {
+              "name": "raw"
+            },
+            {
+              "name": "gain",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5248,
+        2960
+      ],
+      "id": "4dabb755-46f2-49e8-b4ef-20caad47a2f6",
+      "name": "Create expenses table"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "expenses",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "amount": "={{ $('Format Response 4').item.json.amount }}",
+            "category": "={{ $('Format Response 4').item.json.category }}",
+            "date": "={{ $('Format Response 4').item.json.time }}",
+            "raw": "={{ $('Format Response 4').item.json.raw }}",
+            "gain": "={{ $('Format Response 4').item.json.gain }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw",
+              "displayName": "raw",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "gain",
+              "displayName": "gain",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5248,
+        2784
+      ],
+      "id": "41bf4797-ebc3-40dc-bc70-a4b28d5417d4",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(i => i.json);\n\nconst gainTotals = {};\nconst lossTotals = {};\n\nfor (const row of rows) {\n  const cat = row.category || 'Other';\n  const amt = Math.abs(Number(row.amount) || 0);\n  const isGain = row.gain === true || row.gain === 1 || row.gain === 'true';\n\n  if (isGain) {\n    gainTotals[cat] = (gainTotals[cat] || 0) + amt;\n  } else {\n    lossTotals[cat] = (lossTotals[cat] || 0) + amt;\n  }\n}\n\nreturn [{\n  json: {\n    gainLabels: Object.keys(gainTotals),\n    gainData: Object.values(gainTotals),\n    lossLabels: Object.keys(lossTotals),\n    lossData: Object.values(lossTotals),\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4464,
+        3232
+      ],
+      "id": "379d15a3-175d-45ed-957b-ce2176f221aa",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "expenses",
+          "mode": "name"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4272,
+        3232
+      ],
+      "id": "3eee39e8-b6d6-4914-ac8e-de1a5bc1eab0",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://whisper:9000/asr?language=en&output=json",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "audio_file",
+              "inputDataFieldName": "audio_file"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2864,
+        1280
+      ],
+      "id": "b6bab575-582d-4abb-a870-3b088450116b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3056,
+        1280
+      ],
+      "id": "b7af071c-da5c-45a6-a47d-13ec7817ee85",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whisper-proxy",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2688,
+        1280
+      ],
+      "id": "69ca604e-2c79-4294-b853-1146afcda75d",
+      "name": "Receive Audio",
+      "webhookId": "1eb2e05d-9816-4f0d-979c-4c5aa3b8cdde"
+    },
+    {
+      "parameters": {
+        "url": "=http://tts:5000/api/tts?text={{ encodeURIComponent($json.query.text) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2864,
+        2480
+      ],
+      "id": "547aa87c-1903-470a-bb61-952ec1b1f633",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "audio/wav"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3072,
+        2480
+      ],
+      "id": "b7d2c798-0772-4a31-b143-5495cce229d6",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "path": "tts-proxy",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2688,
+        2480
+      ],
+      "id": "53b40574-0428-44b0-919b-8cb074c67161",
+      "name": "Receive TTS",
+      "webhookId": "3278e552-f904-4d30-9b55-3e7cd0eb164d"
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "id": "40677fd5-489c-4e6e-9a65-7c55260af975",
+      "name": "Ollama Chat Model5",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        4880,
+        1376
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "JbjAzk6sO4GuD8Io",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "approved-check-001",
+              "leftValue": "={{ $json.body.decision }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        5488,
+        1200
+      ],
+      "id": "b27d3109-1af3-4ab4-bb6c-b4b567d8e0d6",
+      "name": "Is Approved"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "denied-result-001",
+              "name": "result",
+              "value": "Command was denied by the user.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5648,
+        1296
+      ],
+      "id": "75f20e9f-e466-4531-9cca-59e130a06b25",
+      "name": "Denied Response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "success-result-001",
+              "name": "result",
+              "value": "={{ $json.result }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6240,
+        1104
+      ],
+      "id": "9256c0e5-3a69-453e-aad3-50fcd773bb8f",
+      "name": "Success Response"
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "={{ $json.command }}"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        5824,
+        1104
+      ],
+      "id": "066ece5e-f0d9-4690-92db-2ff41c99ad5a",
+      "name": "Execute command",
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "BeYJCrc429ALOgX3",
+          "name": "SSH Private Key account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "uname -s"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        4352,
+        1280
+      ],
+      "id": "c73486ce-b2d2-47e5-92c9-b8706bc09f79",
+      "name": "return macOS, Linux",
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "BeYJCrc429ALOgX3",
+          "name": "SSH Private Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "privateKey",
+        "command": "if ($env:OS -eq \"Windows_NT\") { \"Windows\" }"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        4352,
+        1120
+      ],
+      "id": "3fe53743-67fa-47a7-bf03-97901dfb0949",
+      "name": "return Windows",
+      "credentials": {
+        "sshPrivateKey": {
+          "id": "BeYJCrc429ALOgX3",
+          "name": "SSH Private Key account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "pending-approval",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2688,
+        2288
+      ],
+      "id": "a1cd2118-a254-4339-8501-a96dd3617e51",
+      "name": "Webhook",
+      "webhookId": "43e6b6a1-e3a8-4f22-a8c1-979a2ba43529"
+    },
+    {
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst data = staticData.pendingApproval;\n\nif (!data) {\n  return [{ json: {} }];\n}\n\nif (!data.storedAt) {\n  delete staticData.pendingApproval;\n  return [{ json: {} }];\n}\n\nif (Date.now() - data.storedAt > 5 * 60 * 1000) {\n  delete staticData.pendingApproval;\n  return [{ json: {} }];\n}\n\nreturn [{ json: data }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        2288
+      ],
+      "id": "3977a750-64d4-4038-a38f-faad5001b559",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        3072,
+        2288
+      ],
+      "id": "36610ca4-2df1-4eee-a8ba-76ade8f19601",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "60122a1b-471f-4e79-9f2e-f0796d9ec7b9",
+      "name": "Respond to UI",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        5600,
+        912
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "binary",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Content-Type",
+                "value": "image/png"
+              }
+            ]
+          }
+        }
+      },
+      "id": "772052b4-1e5b-498c-b1fd-fcd4fb6a890f",
+      "name": "Respond to UI3",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        5392,
+        3232
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "approve-command",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        5296,
+        1200
+      ],
+      "id": "e7b1784e-ce2d-4800-a042-7bc288013933",
+      "name": "Webhook1",
+      "webhookId": "c9532104-ce50-489b-bff3-31ec0e850bf7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const stdout = $input.first().json.stdout?.trim() || \"\";\nconst stderr = $input.first().json.stderr?.trim() || \"\";\nconst error = $input.first().json.error?.trim() || \"\";\nconst code = $input.first().json.exitCode ?? 0;\n\nconst failed = !!error || code !== 0;\nconst output = stdout || stderr || \"\";\n\nreturn {\n  json: {\n    result: failed\n      ? `Command failed${code !== 0 ? ` (exit ${code})` : \"\"}\\n${error || stderr || \"No error details.\"}`\n      : `Command executed${output ? `\\n\\n${output}` : \"\"}`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6016,
+        1104
+      ],
+      "id": "1d00e58f-f753-41fa-838e-4a2b43c2bd82",
+      "name": "Format Result"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "9be364b0-f35c-4dcd-b8c2-67ed3bc8a659",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Gain",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "52843313-7117-47a1-8841-06daa8c65c76",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Loss",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7092532e-d75e-49ca-a35e-bc9fdba7b462",
+      "name": "Complexity Switch1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        4976,
+        3232
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following three tokens:\n1. Gain\n2. Loss\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- If the user requires to show the gain graph -> Output \"Gain\"\n- If the uesr requires to show the loss graph -> Output \"Loss\"\n\n### User Input:\n{{ $('Receive Msg (POST)').item.json.body.message }}\n"
+      },
+      "id": "a4a97f4d-1fb0-4334-985d-926dfa95e740",
+      "name": "Classifier Agent2",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        4672,
+        3232
+      ]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        4672,
+        3392
+      ],
+      "id": "0cf26659-dacc-4e89-8801-303a1684efb4",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "JbjAzk6sO4GuD8Io",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chartType": "pie",
+        "labelsMode": "array",
+        "labelsArray": "={{ $('Code in JavaScript1').item.json.gainLabels }}",
+        "data": "={{ $('Code in JavaScript1').item.json.gainData }}",
+        "output": "=gainChart",
+        "chartOptions": {},
+        "datasetOptions": {}
+      },
+      "type": "n8n-nodes-base.quickChart",
+      "typeVersion": 1,
+      "position": [
+        5184,
+        3168
+      ],
+      "id": "439b07d3-2799-40e7-9024-131d16e2d1b5",
+      "name": "gainChart"
+    },
+    {
+      "parameters": {
+        "chartType": "pie",
+        "labelsMode": "array",
+        "labelsArray": "={{ $('Code in JavaScript1').item.json.lossLabels }}",
+        "data": "={{ $('Code in JavaScript1').item.json.lossData }}",
+        "output": "=lossChart",
+        "chartOptions": {},
+        "datasetOptions": {}
+      },
+      "type": "n8n-nodes-base.quickChart",
+      "typeVersion": 1,
+      "position": [
+        5184,
+        3312
+      ],
+      "id": "b173a4c6-acb8-4039-8baa-09e12cca1827",
+      "name": "lossChart"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7 * * *"
+            }
+          ]
+        }
+      },
+      "id": "4fed9481-be33-4ae6-b1af-41ddc6fc4179",
+      "name": "Morning Schedule (7 AM)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        2704,
+        2688
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "email@gmail.com",
+          "mode": "list",
+          "cachedResultName": "email@gmail.com"
+        },
+        "returnAll": true,
+        "timeMin": "={{ $now.startOf('day').toISO() }}",
+        "timeMax": "={{ $now.endOf('day').toISO() }}",
+        "options": {
+          "orderBy": "startTime"
+        }
+      },
+      "id": "3bb0c0ac-0972-47a9-affc-e7e52197782f",
+      "name": "Get Today's Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        2960,
+        2688
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "lIow84PD3zb3dX9h",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 30,
+        "filters": {
+          "q": "=(subject:urgent OR from:@hsbc.com) after:{{ $now.minus({hours:12}).toFormat('yyyy/MM/dd') }}"
+        }
+      },
+      "id": "ba7fe36a-221d-4102-86d8-a16bba27b17f",
+      "name": "Get Overnight Emails",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3216,
+        2688
+      ],
+      "webhookId": "ff1b0165-2f44-4869-b7bb-897626fc4a6b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QeYyhk1AvthUQVzV",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Pull data from upstream nodes ─────────────────────────────────────────\nconst calItems   = $(\"Get Today's Calendar\").all();\nconst emailItems = $('Get Overnight Emails').all();\n\n// ── Calendar ───────────────────────────────────────────────────────────────\nconst eventLines = calItems.map(i => {\n  const e      = i.json;\n  const title  = e.summary || '(Untitled)';\n  const start  = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').slice(0, 16);\n  const end    = (e.end?.dateTime   || e.end?.date   || '').replace('T', ' ').slice(11, 16);\n  const where  = e.location ? ` @ ${e.location}` : '';\n  const status = e.status === 'tentative' ? ' ⚠️ Tentative' : '';\n  return `• ${title}  [${start}${end ? '–' + end : ''}${where}]${status}`;\n});\nconst calSection = eventLines.length\n  ? eventLines.join('\\n')\n  : '(No calendar events today)';\n\n// ── Emails ─────────────────────────────────────────────────────────────────\nconst emailLines = emailItems.map(i => {\n  const e       = i.json;\n  const from    = e.From    || e.from    || 'Unknown';\n  const subject = e.Subject || e.subject || '(no subject)';\n  const snippet = (e.snippet || '').slice(0, 160);\n  return `• FROM: ${from}\\n  SUBJ: ${subject}\\n  …${snippet}`;\n});\nconst emailSection = emailLines.length\n  ? emailLines.join('\\n\\n')\n  : '(No urgent or HSBC emails in the last 12 hours)';\n\n// ── Timestamp ──────────────────────────────────────────────────────────────\nconst dateLabel = $now.toFormat('EEEE, MMMM d, yyyy');\nconst timeLabel = $now.toFormat('h:mm a');\n\nreturn [{ json: { calSection, emailSection, dateLabel, timeLabel } }];\n"
+      },
+      "id": "95504c42-1148-43d1-a3ce-99405d01eeb4",
+      "name": "Build Briefing Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3168,
+        2912
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "llama3.2:latest",
+          "mode": "list",
+          "cachedResultName": "llama3.2:latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a sharp, concise executive assistant briefing a busy professional. Today is {{ $json.dateLabel }}, {{ $json.timeLabel }} (Hong Kong, UTC+8). Write ONLY the briefing — no preamble, no sign-off, no commentary outside the structure below.\n\nOutput in clean plain text (no markdown bold, no asterisks). Use the section headers exactly as shown.\n\n=== MORNING BRIEFING — {{ $json.dateLabel }} ===\n\nMARKETS\nDiscuss global/Hong Kong market updates today. 2-3 sentences.\n\nTODAY'S SCHEDULE\nList every event. Flag any conflicts, tight turnarounds, or prep needed.\n\nOVERNIGHT EMAILS — URGENT / HSBC\nSummarise each email: sender, topic, required action. One bullet per email.\n\nACTION ITEMS BEFORE NOON\nNumbered list. Derive concrete next steps from schedule, emails, and market context. Be specific.\n\n---\nSOURCE DATA\n\nCalendar:\n{{ $json.calSection }}\n\nEmails:\n{{ $json.emailSection }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "daab5b73-3f49-4963-9fb8-830b162661f0",
+      "name": "Morning Analyst Agent",
+      "type": "@n8n/n8n-nodes-langchain.ollama",
+      "typeVersion": 1,
+      "position": [
+        3392,
+        2912
+      ],
+      "credentials": {
+        "ollamaApi": {
+          "id": "JbjAzk6sO4GuD8Io",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=email@gmail.com",
+        "subject": "={{ '🌅 Morning Briefing — ' + $('Build Briefing Context').first().json.dateLabel }}",
+        "emailType": "text",
+        "message": "={{ $json.content }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "a0892d77-045e-4043-b4f8-7b8dda9af739",
+      "name": "Send Morning Briefing",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        3728,
+        2912
+      ],
+      "webhookId": "6f5229f8-77ee-45fd-b8f1-b96ed6bdfb0b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QeYyhk1AvthUQVzV",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "filters": {
+          "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        5568,
+        1792
+      ],
+      "id": "6cac6214-d438-44d6-ab6c-aef25f6c309a",
+      "name": "Get any messages in Gmail",
+      "webhookId": "2267fe83-55e3-4f63-852a-fc9b121388d3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QeYyhk1AvthUQVzV",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        4848,
+        1952
+      ],
+      "id": "477052cc-e3d2-4748-b645-3a65aea95bac",
+      "name": "Send a message in Gmail",
+      "webhookId": "f90ee9ff-d1c2-40da-bfbf-d3d6555299ef",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QeYyhk1AvthUQVzV",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query', ``, 'string') }}",
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        4992,
+        1952
+      ],
+      "id": "1e8bf6bf-8fb1-4569-b0c7-c1ccd05974aa",
+      "name": "Search files and folders in Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CpLTEDywHBvmKLVR",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet', ``, 'string') }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        5136,
+        1952
+      ],
+      "id": "ad8383f8-aed2-4a45-8a03-21c2020bd051",
+      "name": "Append or update row in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6t4AhwC9eUC6lUjp",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        5280,
+        1952
+      ],
+      "id": "7f9aa345-da3b-4577-9068-12511b51f762",
+      "name": "Create sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6t4AhwC9eUC6lUjp",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        5424,
+        1952
+      ],
+      "id": "07aee050-0253-4991-a857-3b48a1364423",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6t4AhwC9eUC6lUjp",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "filters": {
+          "q": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        5680,
+        2432
+      ],
+      "id": "157762b0-74b2-4115-ac24-f2ff2b97e98d",
+      "name": "Get any messages in Gmail1",
+      "webhookId": "2267fe83-55e3-4f63-852a-fc9b121388d3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QeYyhk1AvthUQVzV",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        4928,
+        2592
+      ],
+      "id": "904a4e09-c458-4bac-99a7-212ae7fc7f89",
+      "name": "Send a message in Gmail1",
+      "webhookId": "f90ee9ff-d1c2-40da-bfbf-d3d6555299ef",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QeYyhk1AvthUQVzV",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "queryString": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Query', ``, 'string') }}",
+        "filter": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTool",
+      "typeVersion": 3,
+      "position": [
+        5072,
+        2592
+      ],
+      "id": "0e99e72e-b1e0-45da-931e-52390d84b5fd",
+      "name": "Search files and folders in Google Drive1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "CpLTEDywHBvmKLVR",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet', ``, 'string') }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        5232,
+        2592
+      ],
+      "id": "45feb547-96e4-484b-b416-660a71398482",
+      "name": "Append or update row in sheet in Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6t4AhwC9eUC6lUjp",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "title": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Title', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        5376,
+        2592
+      ],
+      "id": "e9f08d6f-5814-4d10-812c-197930cdb18a",
+      "name": "Create sheet in Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6t4AhwC9eUC6lUjp",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Document', ``, 'string') }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sheet', ``, 'string') }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        5520,
+        2592
+      ],
+      "id": "d76f0aed-4d49-42b0-8956-4b35edfdd5e4",
+      "name": "Get row(s) in sheet in Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "6t4AhwC9eUC6lUjp",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-response",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "9e193d21-ec10-4bb7-8a5e-7e80da53f799",
+      "name": "Receive Msg (POST)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        2688,
+        1648
+      ],
+      "webhookId": "msg-webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following four tokens:\n1. command\n2. normal\n3. expense\n4. visualize\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- Output \"command\" if the user wants to do something on the local machine or host system\n- Output \"expense\" if the user is logging a personal spending/expense transaction, such as saying they spent, paid, bought, used, or were charged money\n- Output \"visualize\" if the user asked to visualize the data from the expense\n- Output \"normal\" for everything else\n\n### User Input:\n{{ $('Receive Msg (POST)').item.json.body.message }}\n"
+      },
+      "id": "a45f526d-8bc4-49d8-aa6d-b87603146ce2",
+      "name": "Task Classifier Agent",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        3376,
+        1648
+      ]
     },
     {
       "parameters": {
@@ -820,7 +1954,7 @@
         "options": {}
       },
       "id": "e451dd75-a405-465a-96c5-30da0e94d986",
-      "name": "Agent Switch",
+      "name": "Agent Switch Task",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
       "position": [
@@ -831,575 +1965,20 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are an expense extractor. Extract the amount and category from the user's message.\n\nOUTPUT RULES:\n1. Output ONLY valid JSON. No explanation, no markdown, no code blocks.\n2. Use EXACTLY this format: {\"amount\": <number>, \"category\": \"<string>\", \"gain\": \"<boolean>\"}\n3. amount must be a positive plain number (e.g. 50, not \"$50\")\n4. category must be ONE of: For not gain: Food, Transport, Shopping, Entertainment, Health, Utilities, Other. For gain: Salary, Freelance, Business, Investment, Rental, Other\n5. gain must be: 0 for loss / expense / money spent, 1 for gain / income / money recieved\n\nCurrent Time is: {{ $now }}\nUser message: {{ $('Receive Msg (POST)1').item.json.body.message }}",
+        "text": "=You are a command task summarizer.\n\nYour ONLY job is to rewrite the user's input into a short, plain English instruction suitable for executing on a local machine.\n\n### Rules:\n- Output ONLY the rewritten task string\n- Write in plain English, imperative form (e.g. \"Open Chrome\", \"Check disk usage\")\n- No JSON, no markdown, no quotes, no punctuation at the end\n- Keep it short — one sentence maximum\n- Do NOT explain what you are doing\n- Do NOT add any other text before or after the task\n\n### User Input:\n{{ $('Receive Msg (POST)').item.json.body.message }}",
         "hasOutputParser": true,
-        "options": {}
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        4272,
-        2560
-      ],
-      "id": "b1a10b4a-98f9-4fba-a0bb-46eb1dd8fced",
-      "name": "AI Agent3"
-    },
-    {
-      "parameters": {
-        "model": "llama3.2:latest",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
-      "typeVersion": 1,
-      "position": [
-        4272,
-        2704
-      ],
-      "id": "4d846e06-b9d2-425b-9bf8-c2f417c8eb9f",
-      "name": "Ollama Chat Model3",
-      "credentials": {
-        "ollamaApi": {
-          "id": "JbjAzk6sO4GuD8Io",
-          "name": "Ollama account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const raw = $input.first().json.output;\nconst cleaned = raw.replace(/```json|```/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  const match = cleaned.match(/\\{.*\\}/s);\n  parsed = match ? JSON.parse(match[0]) : { amount: null, category: \"Other\" };\n}\n\nconst parsedGain = !!(parsed.gain === true || parsed.gain === 1);\n\n// Use $now for actual current date + time (Luxon DateTime in n8n)\nconst time = $now\n\nreturn [{ json: { \n  amount: parsed.amount, \n  category: parsed.category,\n  gain: parsedGain,\n  time,\n  raw: $('Receive Msg (POST)1').first().json.body.message\n}}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4624,
-        2560
-      ],
-      "id": "149c36be-716d-43d4-8961-2160bf509000",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "03348049-ca71-42b4-8e68-717a5ad6a854",
-              "leftValue": "={{ $items(\"List data tables\").map(i => i.json.name).includes(\"expenses\") }}",
-              "rightValue": 1,
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        5056,
-        2560
-      ],
-      "id": "6ffefc84-d677-4d18-a609-1d37b1fb71e4",
-      "name": "If"
-    },
-    {
-      "parameters": {
-        "resource": "table",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4832,
-        2560
-      ],
-      "id": "322fe41e-0a1f-4dbd-ba34-cb6c1b682fbb",
-      "name": "List data tables",
-      "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "resource": "table",
-        "operation": "create",
-        "tableName": "=expenses",
-        "columns": {
-          "column": [
-            {
-              "name": "amount",
-              "type": "number"
-            },
-            {
-              "name": "category"
-            },
-            {
-              "name": "date",
-              "type": "date"
-            },
-            {
-              "name": "raw"
-            },
-            {
-              "name": "gain",
-              "type": "boolean"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5248,
-        2640
-      ],
-      "id": "4dabb755-46f2-49e8-b4ef-20caad47a2f6",
-      "name": "Create expenses table"
-    },
-    {
-      "parameters": {
-        "dataTableId": {
-          "__rl": true,
-          "value": "expenses",
-          "mode": "name"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "amount": "={{ $('Code in JavaScript').item.json.amount }}",
-            "category": "={{ $('Code in JavaScript').item.json.category }}",
-            "date": "={{ $('Code in JavaScript').item.json.time }}",
-            "raw": "={{ $('Code in JavaScript').item.json.raw }}",
-            "gain": "={{ $('Code in JavaScript').item.json.gain }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "amount",
-              "displayName": "amount",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "category",
-              "displayName": "category",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "date",
-              "displayName": "date",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "raw",
-              "displayName": "raw",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "gain",
-              "displayName": "gain",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "boolean",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        5248,
-        2464
-      ],
-      "id": "41bf4797-ebc3-40dc-bc70-a4b28d5417d4",
-      "name": "Insert row"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "589f4826-5e3d-4ea3-aea5-e26cac27d64d",
-              "name": "result",
-              "value": "The expense is successfully added into the database.",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        5520,
-        2464
-      ],
-      "id": "978f374f-8f14-45c2-9ee2-39911dd464e8",
-      "name": "Edit Fields"
-    },
-    {
-      "parameters": {
-        "jsCode": "const rows = $input.all().map(i => i.json);\n\nconst gainTotals = {};\nconst lossTotals = {};\n\nfor (const row of rows) {\n  const cat = row.category || 'Other';\n  const amt = Math.abs(Number(row.amount) || 0);\n  const isGain = row.gain === true || row.gain === 1 || row.gain === 'true';\n\n  if (isGain) {\n    gainTotals[cat] = (gainTotals[cat] || 0) + amt;\n  } else {\n    lossTotals[cat] = (lossTotals[cat] || 0) + amt;\n  }\n}\n\nreturn [{\n  json: {\n    gainLabels: Object.keys(gainTotals),\n    gainData: Object.values(gainTotals),\n    lossLabels: Object.keys(lossTotals),\n    lossData: Object.values(lossTotals),\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4416,
-        2976
-      ],
-      "id": "379d15a3-175d-45ed-957b-ce2176f221aa",
-      "name": "Code in JavaScript1"
-    },
-    {
-      "parameters": {
-        "operation": "get",
-        "dataTableId": {
-          "__rl": true,
-          "value": "expenses",
-          "mode": "name"
-        },
-        "returnAll": true
-      },
-      "type": "n8n-nodes-base.dataTable",
-      "typeVersion": 1.1,
-      "position": [
-        4224,
-        2976
-      ],
-      "id": "3eee39e8-b6d6-4914-ac8e-de1a5bc1eab0",
-      "name": "Get row(s)"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://whisper:9000/asr?language=en&output=json",
-        "sendBody": true,
-        "contentType": "multipart-form-data",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "parameterType": "formBinaryData",
-              "name": "audio_file",
-              "inputDataFieldName": "audio_file"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        2864,
-        1280
-      ],
-      "id": "b6bab575-582d-4abb-a870-3b088450116b",
-      "name": "HTTP Request"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify($json) }}",
-        "options": {
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              }
-            ]
-          }
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        3056,
-        1280
-      ],
-      "id": "b7af071c-da5c-45a6-a47d-13ec7817ee85",
-      "name": "Respond to Webhook"
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "whisper-proxy",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        2688,
-        1280
-      ],
-      "id": "69ca604e-2c79-4294-b853-1146afcda75d",
-      "name": "Receive Audio",
-      "webhookId": "1eb2e05d-9816-4f0d-979c-4c5aa3b8cdde"
-    },
-    {
-      "parameters": {
-        "url": "=http://tts:5000/api/tts?text={{ encodeURIComponent($json.query.text) }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        2864,
-        3008
-      ],
-      "id": "547aa87c-1903-470a-bb61-952ec1b1f633",
-      "name": "HTTP Request1"
-    },
-    {
-      "parameters": {
-        "respondWith": "binary",
-        "options": {
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              },
-              {
-                "name": "Content-Type",
-                "value": "audio/wav"
-              }
-            ]
-          }
-        }
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        3072,
-        3008
-      ],
-      "id": "b7d2c798-0772-4a31-b143-5495cce229d6",
-      "name": "Respond to Webhook1"
-    },
-    {
-      "parameters": {
-        "path": "tts-proxy",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        2656,
-        3008
-      ],
-      "id": "53b40574-0428-44b0-919b-8cb074c67161",
-      "name": "Receive TTS",
-      "webhookId": "3278e552-f904-4d30-9b55-3e7cd0eb164d"
-    },
-    {
-      "parameters": {
-        "jsCode": "const raw  = ($input.first().json.stdout || '').trim().toLowerCase();\nconst task = $('Receive Msg (POST)1').first().json.body.message || '';\n\nlet os = 'unknown';\nif (raw.includes('darwin'))                                                   os = 'darwin';\nelse if (raw.includes('linux'))                                               os = 'linux';\nelse if (raw.includes('windows') || raw.includes('mingw') || raw.includes('cygwin')) os = 'windows';\n\nreturn [{ json: { detectedOS: os, task } }];"
-      },
-      "id": "a8e147ea-2259-49d3-9f9a-43c6b847ccd8",
-      "name": "Parse OS1",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4720,
-        1200
-      ]
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.task }}",
-        "options": {
-          "systemMessage": "=You are a multi-platform terminal assistant for macOS, Linux, and Windows.\n\nThe detected OS is: {{ $json.detectedOS }}. Task: {{ $json.task }}.\n\nThe user wants to perform a task on their machine. Convert their plain-English request into the correct shell command for the detected OS.\n\nCRITICAL RULES:\n1. Use ONLY the detected OS above — never output commands for another OS.\n2. Extract file paths, URLs, app names EXACTLY as the user typed them.\n3. Wrap paths that contain spaces in quotes appropriate for the OS.\n4. Respond ONLY with this JSON — no markdown, no backticks, no extra text:\n\n{\"command\":\"<exact shell command for detected OS>\",\"description\":\"<one sentence: what this command does>\",\"os\":\"<macos|linux|windows>\",\"risk\":\"<low|medium|high>\",\"riskReason\":\"<one sentence explaining the risk level>\"}\n5. DO NOT include nested quotes inside target unless absolutely necessary.\n\nRisk guide:\n- low   = read-only / open apps / search queries\n- medium = create or modify files / install software / change settings\n- high  = delete files / kill processes / system-wide or irreversible changes "
-        }
-      },
-      "id": "801791f8-ba04-4499-9715-0d916b5b1771",
-      "name": "Ollama Agent1",
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 1.7,
-      "position": [
-        4880,
-        1200
-      ]
-    },
-    {
-      "parameters": {
-        "model": "llama3.2:latest",
-        "options": {}
-      },
-      "id": "40677fd5-489c-4e6e-9a65-7c55260af975",
-      "name": "Ollama Chat Model5",
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
-      "typeVersion": 1,
-      "position": [
-        4880,
-        1376
-      ],
-      "credentials": {
-        "ollamaApi": {
-          "id": "JbjAzk6sO4GuD8Io",
-          "name": "Ollama account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const rawOutput = $input.first().json.output || $input.first().json.text || \"\";\nconst cleaned = rawOutput.replace(/```json|```/g, \"\").trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (err) {\n  throw new Error(\"Invalid JSON from Ollama: \" + rawOutput);\n}\n\nlet command = (parsed.command || \"\").trim();\nconst description = parsed.description || \"\";\nconst os = (parsed.os || \"\").toLowerCase();\nconst risk = (parsed.risk || \"\").toLowerCase();\nconst riskReason = parsed.riskReason || \"\";\n\nif (!command) {\n  throw new Error(\"Missing command in Ollama output: \" + rawOutput);\n}\n\n// Remove one pair of outer quotes if the whole command is wrapped\nif (\n  (command.startsWith('\"') && command.endsWith('\"')) ||\n  (command.startsWith(\"'\") && command.endsWith(\"'\"))\n) {\n  command = command.slice(1, -1).trim();\n}\n\nlet finalCommand = command;\n\nif (os === \"windows\") {\n  // If command already starts with powershell, keep it as-is\n  if (!/^powershell(\\\\.exe)?\\\\b/i.test(command)) {\n    finalCommand = `powershell -Command ${command.replace(/\"/g, '\\\\\"')}`;\n  }\n}\n\nconst riskEmoji = { low: \"🟢\", medium: \"🟡\", high: \"🔴\" }[risk] || \"⚪\";\n\nreturn [{\n  json: {\n    command: finalCommand,\n    description,\n    os: os || \"unknown\",\n    risk: risk || \"low\",\n    riskReason,\n    riskEmoji\n  }\n}];"
-      },
-      "id": "6cae4066-caa0-4b51-a0b2-9e1bec8a39ea",
-      "name": "Parse Ollama JSON1",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        5104,
-        1200
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "approved-check-001",
-              "leftValue": "={{ $json.body.decision }}",
-              "rightValue": "approved",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        5488,
+        4064,
         1200
       ],
-      "id": "b27d3109-1af3-4ab4-bb6c-b4b567d8e0d6",
-      "name": "Is Approved"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "denied-result-001",
-              "name": "result",
-              "value": "Command was denied by the user.",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        5696,
-        1296
-      ],
-      "id": "75f20e9f-e466-4531-9cca-59e130a06b25",
-      "name": "Denied Response"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "success-result-001",
-              "name": "result",
-              "value": "={{ $json.result }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        6240,
-        1104
-      ],
-      "id": "9256c0e5-3a69-453e-aad3-50fcd773bb8f",
-      "name": "Success Response"
-    },
-    {
-      "parameters": {
-        "authentication": "privateKey",
-        "command": "={{ $json.command }}"
-      },
-      "type": "n8n-nodes-base.ssh",
-      "typeVersion": 1,
-      "position": [
-        5824,
-        1104
-      ],
-      "id": "066ece5e-f0d9-4690-92db-2ff41c99ad5a",
-      "name": "Execute command",
-      "credentials": {
-        "sshPrivateKey": {
-          "id": "BeYJCrc429ALOgX3",
-          "name": "SSH Private Key account"
-        }
-      },
-      "onError": "continueErrorOutput"
+      "id": "488b6189-4c45-4fe6-89ed-69b30896cd7f",
+      "name": "Command Task Summarizer"
     },
     {
       "parameters": {
@@ -1452,47 +2031,50 @@
         1216
       ],
       "id": "a2bfc401-6e00-4551-a45d-d40f680e9d30",
-      "name": "If1"
+      "name": "If = OS"
     },
     {
       "parameters": {
-        "authentication": "privateKey",
-        "command": "uname -s"
+        "jsCode": "const raw  = ($input.first().json.stdout || '').trim().toLowerCase();\nconst task = $('Receive Msg (POST)').first().json.body.message || '';\n\nlet os = 'unknown';\nif (raw.includes('darwin'))                                                   os = 'macos';\nelse if (raw.includes('linux'))                                               os = 'linux';\nelse if (raw.includes('windows') || raw.includes('mingw') || raw.includes('cygwin')) os = 'windows';\n\nreturn [{ json: { detectedOS: os, task } }];"
       },
-      "type": "n8n-nodes-base.ssh",
-      "typeVersion": 1,
+      "id": "a8e147ea-2259-49d3-9f9a-43c6b847ccd8",
+      "name": "Parse OS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        4352,
-        1280
-      ],
-      "id": "c73486ce-b2d2-47e5-92c9-b8706bc09f79",
-      "name": "return macOS, Linux",
-      "credentials": {
-        "sshPrivateKey": {
-          "id": "BeYJCrc429ALOgX3",
-          "name": "SSH Private Key account"
-        }
-      }
+        4720,
+        1200
+      ]
     },
     {
       "parameters": {
-        "authentication": "privateKey",
-        "command": "if ($env:OS -eq \"Windows_NT\") { \"Windows\" }"
-      },
-      "type": "n8n-nodes-base.ssh",
-      "typeVersion": 1,
-      "position": [
-        4352,
-        1120
-      ],
-      "id": "3fe53743-67fa-47a7-bf03-97901dfb0949",
-      "name": "return Windows",
-      "credentials": {
-        "sshPrivateKey": {
-          "id": "BeYJCrc429ALOgX3",
-          "name": "SSH Private Key account"
+        "promptType": "define",
+        "text": "={{ $json.task }}",
+        "options": {
+          "systemMessage": "=You are a multi-platform terminal assistant for macOS, Linux, and Windows.\n\nThe detected OS is: {{ $json.detectedOS }}. Task: {{ $json.task }}.\n\nThe user wants to perform a task on their machine. Convert their plain-English request into the correct shell command for the detected OS.\n\nCRITICAL RULES:\n1. Use ONLY the detected OS above — never output commands for another OS.\n2. Extract file paths, URLs, app names EXACTLY as the user typed them.\n3. Wrap paths that contain spaces in quotes appropriate for the OS.\n4. Respond ONLY with this JSON — no markdown, no backticks, no extra text:\n\n{\"command\":\"<exact shell command for detected OS>\",\"description\":\"<one sentence: what this command does>\",\"os\":\"<macos|linux|windows>\",\"risk\":\"<low|medium|high>\",\"riskReason\":\"<one sentence explaining the risk level>\"}\n5. DO NOT include nested quotes inside target unless absolutely necessary.\n\nRisk guide:\n- low   = read-only / open apps / search queries\n- medium = create or modify files / install software / change settings\n- high  = delete files / kill processes / system-wide or irreversible changes "
         }
-      }
+      },
+      "id": "801791f8-ba04-4499-9715-0d916b5b1771",
+      "name": "Multi-Platform Terminal Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        4880,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOutput = (\n  $input.first().json.output ||\n  $input.first().json.text ||\n  $input.first().json.response ||\n  \"\"\n);\n\n// ── Step 1: Strip <think>…</think> blocks (DeepSeek / QwQ reasoning models)\nlet cleaned = rawOutput.replace(/<think>[\\s\\S]*?<\\/think>/gi, \"\").trim();\n\n// ── Step 2: Strip ALL markdown code fences (```json, ```sh, ```, ~~~, etc.)\ncleaned = cleaned.replace(/^```[\\w]*\\n?|^~~~[\\w]*\\n?|```$|~~~$/gm, \"\").trim();\n\n// ── Step 3: Extract the FIRST {...} JSON block found in the text\n//    (handles prose before/after the JSON)\nconst jsonMatch = cleaned.match(/\\{[\\s\\S]*\\}/);\nif (!jsonMatch) {\n  throw new Error(\"No JSON object found in Ollama output:\\n\" + rawOutput);\n}\n\nlet parsed;\ntry {\n  parsed = JSON.parse(jsonMatch);\n} catch (firstErr) {\n  // ── Step 4: Attempt to auto-repair common issues:\n  //   - Unescaped newlines inside string values\n  //   - Trailing commas\n  let repaired = jsonMatch\n    .replace(/[\\r\\n]+(?=[^\"]*\"(?:[^\"\\\\]|\\\\.)*\")/g, \" \")  // newlines inside strings\n    .replace(/,\\s*([}\\]])/g, \"$1\");                        // trailing commas\n\n  try {\n    parsed = JSON.parse(repaired);\n  } catch (secondErr) {\n    throw new Error(\n      \"Invalid JSON from Ollama (repair failed):\\n\" + rawOutput +\n      \"\\nParse error: \" + secondErr.message\n    );\n  }\n}\n\n// ── Step 5: Validate required fields\nlet command = (parsed.command || \"\").trim();\nconst description = parsed.description || \"\";\nconst os = (parsed.os || \"\").toLowerCase();\nconst risk = (parsed.risk || \"\").toLowerCase();\nconst riskReason = parsed.riskReason || \"\";\n\nif (!command) {\n  throw new Error(\"Missing 'command' field in Ollama output:\\n\" + rawOutput);\n}\n\n// ── Step 6: Strip one layer of wrapping quotes the model sometimes adds\nif (\n  (command.startsWith('\"') && command.endsWith('\"')) ||\n  (command.startsWith(\"'\") && command.endsWith(\"'\"))\n) {\n  command = command.slice(1, -1).trim();\n}\n\n// ── Step 7: Normalize path separators based on OS\nlet finalCommand = command;\n\nif (os === \"windows\") {\n  // Replace forward slashes with backslashes in paths (not in protocol like http://)\n  finalCommand = finalCommand.replace(/(?<!https?:)(?<!https?:)\\/(?!\\/)/g, \"\\\\\");\n} else {\n  // macOS / Linux: replace backslashes with forward slashes\n  finalCommand = finalCommand.replace(/\\\\/g, \"/\");\n}\n\nif (os === \"windows\" && !/^powershell(\\.exe)?\\b/i.test(command)) {\n  finalCommand = `powershell -Command ${command.replace(/\"/g, '\\\\\"')}`;\n}\n\nconst riskEmoji = { low: \"🟢\", medium: \"🟡\", high: \"🔴\" }[risk] || \"⚪\";\n\nreturn [{\n  json: {\n    command: finalCommand,\n    description,\n    os: os || \"unknown\",\n    risk: risk || \"low\",\n    riskReason,\n    riskEmoji\n  }\n}];"
+      },
+      "id": "6cae4066-caa0-4b51-a0b2-9e1bec8a39ea",
+      "name": "Parse Command JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5104,
+        1200
+      ]
     },
     {
       "parameters": {
@@ -1505,130 +2087,20 @@
         912
       ],
       "id": "f896612a-f576-432f-a7e6-f6b1460d289d",
-      "name": "Code in JavaScript2"
-    },
-    {
-      "parameters": {
-        "path": "pending-approval",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        2656,
-        2608
-      ],
-      "id": "a1cd2118-a254-4339-8501-a96dd3617e51",
-      "name": "Webhook",
-      "webhookId": "43e6b6a1-e3a8-4f22-a8c1-979a2ba43529"
-    },
-    {
-      "parameters": {
-        "jsCode": "const staticData = $getWorkflowStaticData('global');\nconst data = staticData.pendingApproval;\n\nif (!data) {\n  return [{ json: {} }];\n}\n\nif (!data.storedAt) {\n  delete staticData.pendingApproval;\n  return [{ json: {} }];\n}\n\nif (Date.now() - data.storedAt > 5 * 60 * 1000) {\n  delete staticData.pendingApproval;\n  return [{ json: {} }];\n}\n\nreturn [{ json: data }];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2832,
-        2608
-      ],
-      "id": "3977a750-64d4-4038-a38f-faad5001b559",
-      "name": "Code in JavaScript4"
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        3040,
-        2608
-      ],
-      "id": "36610ca4-2df1-4eee-a8ba-76ade8f19601",
-      "name": "Respond to Webhook2"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ JSON.stringify($json) }}",
-        "options": {
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              }
-            ]
-          }
-        }
-      },
-      "id": "60122a1b-471f-4e79-9f2e-f0796d9ec7b9",
-      "name": "Respond to UI",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        5600,
-        912
-      ]
+      "name": "Format Response"
     },
     {
       "parameters": {
         "jsCode": "const src = $input.first().json;\n\nreturn [{\n  json: {\n    output: src.chartUrl || src.output || src.result || '',\n    approvalRequired: src.approvalRequired || false,\n    approvalUrl: src.approvalUrl || '',\n    description: src.description || '',\n    command: src.command || '',\n    riskReason: src.riskReason || '',\n    risk: src.risk || '',\n    riskEmoji: src.riskEmoji || ''\n  }\n}];"
       },
       "id": "78b345e2-d251-4c47-bead-2fbd929a7cdd",
-      "name": "Format Response",
+      "name": "Format Response 1",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         5424,
         912
       ]
-    },
-    {
-      "parameters": {
-        "respondWith": "binary",
-        "options": {
-          "responseHeaders": {
-            "entries": [
-              {
-                "name": "Access-Control-Allow-Origin",
-                "value": "*"
-              },
-              {
-                "name": "Content-Type",
-                "value": "image/png"
-              }
-            ]
-          }
-        }
-      },
-      "id": "772052b4-1e5b-498c-b1fd-fcd4fb6a890f",
-      "name": "Respond to UI3",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        5344,
-        2976
-      ]
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "approve-command",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        5264,
-        1200
-      ],
-      "id": "e7b1784e-ce2d-4800-a042-7bc288013933",
-      "name": "Webhook1",
-      "webhookId": "c9532104-ce50-489b-bff3-31ec0e850bf7"
     },
     {
       "parameters": {
@@ -1641,156 +2113,153 @@
         1104
       ],
       "id": "90760edf-bc42-4e65-99f6-d31b641805e6",
-      "name": "Code in JavaScript3"
+      "name": "Format Response 2"
     },
     {
       "parameters": {
-        "jsCode": "const stdout = $input.first().json.stdout?.trim() || \"\";\nconst stderr = $input.first().json.stderr?.trim() || \"\";\nconst error = $input.first().json.error?.trim() || \"\";\nconst code = $input.first().json.exitCode ?? 0;\n\nconst failed = !!error || code !== 0;\nconst output = stdout || stderr || \"\";\n\nreturn {\n  json: {\n    result: failed\n      ? `Command failed${code !== 0 ? ` (exit ${code})` : \"\"}\\n${error || stderr || \"No error details.\"}`\n      : `Command executed${output ? `\\n\\n${output}` : \"\"}`\n  }\n};"
+        "jsCode": "const src = $input.first().json;\n\nreturn [{\n  json: {\n    output: src.chartUrl || src.url || src.output || src.result || ''\n  }\n}];"
       },
+      "id": "fd5b7db2-8be0-4f57-bbf2-01aa46a56569",
+      "name": "Format Response 3",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        6016,
-        1104
-      ],
-      "id": "1d00e58f-f753-41fa-838e-4a2b43c2bd82",
-      "name": "Format Result"
-    },
-    {
-      "parameters": {
-        "rules": {
-          "values": [
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "id": "9be364b0-f35c-4dcd-b8c2-67ed3bc8a659",
-                    "leftValue": "={{ $json.text }}",
-                    "rightValue": "Gain",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 1
-                },
-                "conditions": [
-                  {
-                    "id": "52843313-7117-47a1-8841-06daa8c65c76",
-                    "leftValue": "={{ $json.text }}",
-                    "rightValue": "Loss",
-                    "operator": {
-                      "type": "string",
-                      "operation": "equals"
-                    }
-                  }
-                ],
-                "combinator": "and"
-              }
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "7092532e-d75e-49ca-a35e-bc9fdba7b462",
-      "name": "Complexity Switch1",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3,
-      "position": [
-        4928,
-        2976
+        6592,
+        1984
       ]
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a strict routing system. Your ONLY job is to classify the complexity of the user's input.\n\nYou must output exactly ONE of the following three tokens:\n1. Gain\n2. Loss\n\n### Rules:\n- Output NOTHING else. No explanations, no punctuation, no markdown.\n- If the user requires to show the gain graph -> Output \"Gain\"\n- If the uesr requires to show the loss graph -> Output \"Loss\"\n\n### User Input:\n{{ $('Receive Msg (POST)1').item.json.body.message }}\n"
-      },
-      "id": "a4a97f4d-1fb0-4334-985d-926dfa95e740",
-      "name": "Classifier Agent2",
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.4,
-      "position": [
-        4624,
-        2976
-      ]
-    },
-    {
-      "parameters": {
-        "model": "llama3.2:latest",
+        "text": "=You are a helpful AI assistant with access to the user's calendar, documents, and web search capabilities.\n\n**Current Context:**\n- Date & Time: {{ $now.toFormat('EEEE, MMMM d, yyyy, h:mm a') }} (Hong Kong Time, UTC+8)\n- Today: {{ $now.toFormat('MMMM d, yyyy') }}\n- This year: {{ $now.year }}\n\n**Instructions:**\n1. Use the User Profile below to understand the user's schedule, projects, preferences, and context\n2. Answer naturally and conversationally - don't explicitly mention \"according to your profile\" unless directly relevant\n3. For time-sensitive queries (e.g., \"today\", \"this week\", \"next month\"), use the current date/time above\n4. When interpreting dates without year (e.g., \"21/2\", \"Feb 21\"), assume year {{ $now.year }}\n5. Prioritize using available tools (calendar, documents, web search) over general knowledge when answering\n6. You have access to a shell execution tool. Here is some examples:\n   - Run a command or script on the host machine\n   - Check system status, disk usage, processes, or logs\n   - Manage files on the server\n   - Any task requiring direct terminal/OS access\n   Always describe what command you will run before invoking it.\n\n**User Profile:**\n{{ $('Extract from File').item.json.data || 'No profile data available yet.' }}\n\n**User Query:**\n{{ $('Receive Msg (POST)').item.json.body.message }}\n\n---\nProvide a helpful, accurate, and contextually relevant response based on the user's query and profile.\n",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmOllama",
-      "typeVersion": 1,
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        4848,
+        1504
+      ],
+      "id": "855739c7-b75b-4dbf-bd0f-6b6e9867017d",
+      "name": "Simple Task AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "==You are a helpful AI assistant with access to the user's calendar, documents, and web search capabilities.\n\n**Current Context:**\n- Date & Time: {{ $now.toFormat('EEEE, MMMM d, yyyy, h:mm a') }} (Hong Kong Time, UTC+8)\n- Today: {{ $now.toFormat('MMMM d, yyyy') }}\n- This year: {{ $now.year }}\n\n**Instructions:**\n1. Use the User Profile below to understand the user's schedule, projects, preferences, and context\n2. Answer naturally and conversationally - don't explicitly mention \"according to your profile\" unless directly relevant\n3. For time-sensitive queries (e.g., \"today\", \"this week\", \"next month\"), use the current date/time above\n4. When interpreting dates without year (e.g., \"21/2\", \"Feb 21\"), assume year {{ $now.year }}\n5. Prioritize using available tools (calendar, documents, web search) over general knowledge when answering\n6. You have access to a shell execution tool. Use it when the user asks to:\n   - Run a command or script on the host machine\n   - Check system status, disk usage, processes, or logs\n   - Manage files on the server\n   - Any task requiring direct terminal/OS access\n   Always describe what command you will run before invoking it.\n\n**User Profile:**\n{{ $('Extract from File').item.json.data || 'No profile data available yet.' }}\n\n**User Query:**\n{{ $('Receive Msg (POST)').item.json.body.message }}\n\n---\nProvide a helpful, accurate, and contextually relevant response based on the user's query and profile.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        4832,
+        2144
+      ],
+      "id": "438bcd84-6c2a-4b80-bc81-d9097e3f8592",
+      "name": "Hard Task AI Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expense extractor. Extract the amount and category from the user's message.\n\nOUTPUT RULES:\n1. Output ONLY valid JSON. No explanation, no markdown, no code blocks.\n2. Use EXACTLY this format: {\"amount\": <number>, \"category\": \"<string>\", \"gain\": \"<boolean>\"}\n3. amount must be a positive plain number (e.g. 50, not \"$50\")\n4. category must be ONE of: For not gain: Food, Transport, Shopping, Entertainment, Health, Utilities, Other. For gain: Salary, Freelance, Business, Investment, Rental, Other\n5. gain must be: 0 for loss / expense / money spent, 1 for gain / income / money recieved\n\nCurrent Time is: {{ $now }}\nUser message: {{ $('Receive Msg (POST)').item.json.body.message }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        4272,
+        2880
+      ],
+      "id": "b1a10b4a-98f9-4fba-a0bb-46eb1dd8fced",
+      "name": "Expense Extractor AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.output;\nconst cleaned = raw.replace(/```json|```/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  const match = cleaned.match(/\\{.*\\}/s);\n  parsed = match ? JSON.parse(match[0]) : { amount: null, category: \"Other\" };\n}\n\nconst parsedGain = !!(parsed.gain === true || parsed.gain === 1);\n\n// Use $now for actual current date + time (Luxon DateTime in n8n)\nconst time = $now\n\nreturn [{ json: { \n  amount: parsed.amount, \n  category: parsed.category,\n  gain: parsedGain,\n  time,\n  raw: $('Receive Msg (POST)').first().json.body.message\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
         4624,
-        3136
+        2880
       ],
-      "id": "0cf26659-dacc-4e89-8801-303a1684efb4",
-      "name": "Ollama Model",
-      "credentials": {
-        "ollamaApi": {
-          "id": "JbjAzk6sO4GuD8Io",
-          "name": "Ollama account"
-        }
-      }
+      "id": "149c36be-716d-43d4-8961-2160bf509000",
+      "name": "Format Response 4"
     },
     {
       "parameters": {
-        "chartType": "pie",
-        "labelsMode": "array",
-        "labelsArray": "={{ $('Code in JavaScript1').item.json.gainLabels }}",
-        "data": "={{ $('Code in JavaScript1').item.json.gainData }}",
-        "output": "=gainChart",
-        "chartOptions": {},
-        "datasetOptions": {}
+        "resource": "table",
+        "options": {}
       },
-      "type": "n8n-nodes-base.quickChart",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
       "position": [
-        5136,
-        2912
+        4832,
+        2880
       ],
-      "id": "439b07d3-2799-40e7-9024-131d16e2d1b5",
-      "name": "gainChart"
+      "id": "322fe41e-0a1f-4dbd-ba34-cb6c1b682fbb",
+      "name": "List expenses Table",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
-        "chartType": "pie",
-        "labelsMode": "array",
-        "labelsArray": "={{ $('Code in JavaScript1').item.json.lossLabels }}",
-        "data": "={{ $('Code in JavaScript1').item.json.lossData }}",
-        "output": "=lossChart",
-        "chartOptions": {},
-        "datasetOptions": {}
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "03348049-ca71-42b4-8e68-717a5ad6a854",
+              "leftValue": "={{ $items(\"List expenses Table\").map(i => i.json.name).includes(\"expenses\") }}",
+              "rightValue": 1,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      "type": "n8n-nodes-base.quickChart",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
-        5136,
-        3056
+        5056,
+        2880
       ],
-      "id": "b173a4c6-acb8-4039-8baa-09e12cca1827",
-      "name": "lossChart"
+      "id": "6ffefc84-d677-4d18-a609-1d37b1fb71e4",
+      "name": "If expenses Table Exists"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "589f4826-5e3d-4ea3-aea5-e26cac27d64d",
+              "name": "result",
+              "value": "The expense is successfully added into the database.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        5520,
+        2784
+      ],
+      "id": "978f374f-8f14-45c2-9ee2-39911dd464e8",
+      "name": "Return Response"
     }
   ],
-  "pinData": {},
   "connections": {
     "Serve UI (GET)": {
       "main": [
@@ -1841,17 +2310,6 @@
         ]
       ]
     },
-    "Receive Msg (POST)1": {
-      "main": [
-        [
-          {
-            "node": "Read Local File (UTF8)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Convert to File1": {
       "main": [
         [
@@ -1867,7 +2325,7 @@
       "main": [
         [
           {
-            "node": "Classifier Agent1",
+            "node": "Task Classifier Agent",
             "type": "main",
             "index": 0
           }
@@ -1878,25 +2336,14 @@
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Simple Task AI Agent",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "AI Agent1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Format Response2": {
-      "main": [
-        [
-          {
-            "node": "Respond to UI2",
+            "node": "Hard Task AI Agent",
             "type": "main",
             "index": 0
           }
@@ -1907,7 +2354,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "Simple Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1918,7 +2365,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Hard Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1929,7 +2376,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "Simple Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1940,7 +2387,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "Simple Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1951,7 +2398,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Hard Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1962,7 +2409,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Hard Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1973,7 +2420,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "Simple Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1984,7 +2431,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Hard Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -1995,7 +2442,7 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent",
+            "node": "Simple Task AI Agent",
             "type": "ai_tool",
             "index": 0
           }
@@ -2006,19 +2453,8 @@
       "ai_tool": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Hard Task AI Agent",
             "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [
-          {
-            "node": "Format Response2",
-            "type": "main",
             "index": 0
           }
         ]
@@ -2028,19 +2464,8 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent",
+            "node": "Simple Task AI Agent",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent1": {
-      "main": [
-        [
-          {
-            "node": "Format Response2",
-            "type": "main",
             "index": 0
           }
         ]
@@ -2050,7 +2475,7 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Hard Task AI Agent",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -2079,39 +2504,12 @@
         ]
       ]
     },
-    "AI Agent2": {
-      "main": [
-        [
-          {
-            "node": "return Windows",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "return macOS, Linux",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ollama Chat Model2": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent2",
+            "node": "Command Task Summarizer",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Classifier Agent1": {
-      "main": [
-        [
-          {
-            "node": "Agent Switch",
-            "type": "main",
             "index": 0
           }
         ]
@@ -2121,40 +2519,8 @@
       "ai_languageModel": [
         [
           {
-            "node": "Classifier Agent1",
+            "node": "Task Classifier Agent",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Agent Switch": {
-      "main": [
-        [
-          {
-            "node": "AI Agent2",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Classifier Agent",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "AI Agent3",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get row(s)",
-            "type": "main",
             "index": 0
           }
         ]
@@ -2164,59 +2530,8 @@
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent3",
+            "node": "Expense Extractor AI Agent",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent3": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "List data tables",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "If": {
-      "main": [
-        [
-          {
-            "node": "Insert row",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Create expenses table",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "List data tables": {
-      "main": [
-        [
-          {
-            "node": "If",
-            "type": "main",
             "index": 0
           }
         ]
@@ -2226,7 +2541,7 @@
       "main": [
         [
           {
-            "node": "List data tables",
+            "node": "List expenses Table",
             "type": "main",
             "index": 0
           }
@@ -2237,18 +2552,7 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "Format Response2",
+            "node": "Return Response",
             "type": "main",
             "index": 0
           }
@@ -2321,45 +2625,12 @@
         ]
       ]
     },
-    "Parse OS1": {
-      "main": [
-        [
-          {
-            "node": "Ollama Agent1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ollama Agent1": {
-      "main": [
-        [
-          {
-            "node": "Parse Ollama JSON1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ollama Chat Model5": {
       "ai_languageModel": [
         [
           {
-            "node": "Ollama Agent1",
+            "node": "Multi-Platform Terminal Assistant",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Ollama JSON1": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript2",
-            "type": "main",
             "index": 0
           }
         ]
@@ -2369,7 +2640,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript3",
+            "node": "Format Response 2",
             "type": "main",
             "index": 0
           }
@@ -2387,7 +2658,7 @@
       "main": [
         [
           {
-            "node": "Format Response2",
+            "node": "Format Response 3",
             "type": "main",
             "index": 0
           }
@@ -2398,7 +2669,7 @@
       "main": [
         [
           {
-            "node": "Format Response2",
+            "node": "Format Response 3",
             "type": "main",
             "index": 0
           }
@@ -2423,23 +2694,11 @@
         ]
       ]
     },
-    "If1": {
-      "main": [
-        [
-          {
-            "node": "Parse OS1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
     "return macOS, Linux": {
       "main": [
         [
           {
-            "node": "If1",
+            "node": "If = OS",
             "type": "main",
             "index": 0
           }
@@ -2450,18 +2709,7 @@
       "main": [
         [
           {
-            "node": "If1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript2": {
-      "main": [
-        [
-          {
-            "node": "Format Response",
+            "node": "If = OS",
             "type": "main",
             "index": 0
           }
@@ -2490,18 +2738,12 @@
         ]
       ]
     },
-    "Format Response": {
+    "Respond to UI": {
       "main": [
-        [
-          {
-            "node": "Respond to UI",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
-    "Respond to UI": {
+    "Respond to UI3": {
       "main": [
         []
       ]
@@ -2511,17 +2753,6 @@
         [
           {
             "node": "Is Approved",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript3": {
-      "main": [
-        [
-          {
-            "node": "Execute command",
             "type": "main",
             "index": 0
           }
@@ -2539,9 +2770,22 @@
         ]
       ]
     },
-    "Respond to UI3": {
+    "Complexity Switch1": {
       "main": [
-        []
+        [
+          {
+            "node": "gainChart",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "lossChart",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Classifier Agent2": {
@@ -2561,24 +2805,6 @@
           {
             "node": "Classifier Agent2",
             "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Complexity Switch1": {
-      "main": [
-        [
-          {
-            "node": "gainChart",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "lossChart",
-            "type": "main",
             "index": 0
           }
         ]
@@ -2605,19 +2831,441 @@
           }
         ]
       ]
+    },
+    "Morning Schedule (7 AM)": {
+      "main": [
+        [
+          {
+            "node": "Get Today's Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Today's Calendar": {
+      "main": [
+        [
+          {
+            "node": "Get Overnight Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Overnight Emails": {
+      "main": [
+        [
+          {
+            "node": "Build Briefing Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Briefing Context": {
+      "main": [
+        [
+          {
+            "node": "Morning Analyst Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Morning Analyst Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Morning Briefing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get any messages in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Simple Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Simple Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders in Google Drive": {
+      "ai_tool": [
+        [
+          {
+            "node": "Simple Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "Simple Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "Simple Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "Simple Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get any messages in Gmail1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Hard Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message in Gmail1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Hard Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders in Google Drive1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Hard Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet in Google Sheets1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Hard Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sheet in Google Sheets1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Hard Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Hard Task AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Msg (POST)": {
+      "main": [
+        [
+          {
+            "node": "Read Local File (UTF8)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Classifier Agent": {
+      "main": [
+        [
+          {
+            "node": "Agent Switch Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Switch Task": {
+      "main": [
+        [
+          {
+            "node": "Command Task Summarizer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classifier Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Expense Extractor AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Command Task Summarizer": {
+      "main": [
+        [
+          {
+            "node": "return Windows",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "return macOS, Linux",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If = OS": {
+      "main": [
+        [
+          {
+            "node": "Parse OS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Parse OS": {
+      "main": [
+        [
+          {
+            "node": "Multi-Platform Terminal Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Multi-Platform Terminal Assistant": {
+      "main": [
+        [
+          {
+            "node": "Parse Command JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Command JSON": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Format Response 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response 1": {
+      "main": [
+        [
+          {
+            "node": "Respond to UI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response 2": {
+      "main": [
+        [
+          {
+            "node": "Execute command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response 3": {
+      "main": [
+        [
+          {
+            "node": "Respond to UI2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Task AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hard Task AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expense Extractor AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Format Response 4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response 4": {
+      "main": [
+        [
+          {
+            "node": "List expenses Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List expenses Table": {
+      "main": [
+        [
+          {
+            "node": "If expenses Table Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If expenses Table Exists": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create expenses table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Response": {
+      "main": [
+        [
+          {
+            "node": "Format Response 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": true,
-  "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
-  },
-  "versionId": "73c17f08-9033-4e7f-b7c5-ae26a835db12",
+  "pinData": {},
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "bece01e17653611451518fe49e24b76be4a7dd799bc675ccb15e6ca44a1eb7c9"
-  },
-  "id": "SjMviw2b1V1uhuYo0I_Gi",
-  "tags": []
+  }
 }

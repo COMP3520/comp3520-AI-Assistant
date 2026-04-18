@@ -110,4 +110,8 @@ Today Evening: GymTomorrow 8am: Reminder- Today Morning: Reminder
 - Today Evening: Gym 
 - 2026-04-18T02:47:39.492+08:00Tomorrow 9am: Class
 Today Evening: Gym2026-04-18T02:48:48.397+08:00
-- Today Morning: Reminder
+- Today Morning: ReminderTomorrow 9am: Class
+Today Evening: Gym
+Please be reminder the exact date and time now is:
+ 2026-04-18T13:21:17.662+08:00- Current Time: 13:37
+- Date: 2026-04-18- Current Date & Time: 2026-04-18 14:07:43- Current Date and Time: 2026-04-18 02:12- Current Date and Time: 2026-04-18
