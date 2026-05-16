@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>n8n Agent UI</title>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --chat-bg: #1e1e1e;
+      --user-msg: #ea4b71;
+      --bot-msg: #2d2d2d;
+      --text-color: #e0e0e0;
+    }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; height: 100vh; }
+    .chat-container { width: 100%; max-width: 600px; background: var(--chat-bg); display: flex; flex-direction: column; height: 100%; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+
+    /* ── Header ── */
+    .header { padding: 16px 20px; border-bottom: 1px solid #333; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-dot { width: 10px; height: 10px; background: #2ecc71; border-radius: 50%; }
+
+    /* ── Mode toggle ── */
+    .mode-toggle { display: flex; background: #2d2d2d; border-radius: 8px; padding: 3px; gap: 3px; }
+    .mode-btn { padding: 6px 14px; border-radius: 6px; border: none; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; background: none; color: #888; }
+    .mode-btn.active { background: var(--user-msg); color: white; }
+
+    /* ── Messages ── */
+    .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+    .message-row { display: flex; flex-direction: column; }
+    .message-row.user { align-items: flex-end; }
+    .message-row.bot { align-items: flex-start; }
+    .message { max-width: 80%; padding: 12px 16px; border-radius: 12px; line-height: 1.4; font-size: 15px; }
+    .message.user { background: var(--user-msg); color: white; border-bottom-right-radius: 2px; }
+    .message.bot { background: var(--bot-msg); color: var(--text-color); border-bottom-left-radius: 2px; }
+    .tts-btn { margin-top: 6px; background: none; border: 1px solid #444; border-radius: 6px; color: #aaa; font-size: 13px; padding: 4px 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+    .tts-btn:hover { border-color: #ea4b71; color: #ea4b71; }
+    .tts-btn.playing { border-color: #2ecc71; color: #2ecc71; }
+    .tts-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── Status ── */
+    .status { font-size: 12px; color: #888; padding: 0 20px 8px; min-height: 18px; text-align: center; }
+
+    /* ── Text mode input area ── */
+    .input-area { padding: 20px; border-top: 1px solid #333; display: flex; gap: 10px; align-items: center; }
+    input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2d2d2d; color: white; outline: none; transition: border-color 0.2s; }
+    input:focus { border-color: var(--user-msg); }
+    button { padding: 12px 20px; border-radius: 8px; border: none; background: var(--user-msg); color: white; font-weight: bold; cursor: pointer; transition: opacity 0.2s; }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #mic-btn { background: #2d2d2d; border: 1px solid #555; font-size: 18px; padding: 10px 14px; flex-shrink: 0; }
+    #mic-btn.recording { background: #ea4b71; border-color: #ea4b71; animation: pulse 1s infinite; }
+
+    /* ── Voice mode panel ── */
+    .voice-panel { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px; border-top: 1px solid #333; gap: 16px; }
+    .voice-panel.visible { display: flex; }
+    .orb { width: 80px; height: 80px; border-radius: 50%; background: #2d2d2d; border: 2px solid #444; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; transition: all 0.3s; position: relative; }
+    .orb.listening { border-color: #2ecc71; box-shadow: 0 0 0 0 rgba(46,204,113,0.4); animation: orb-pulse 1.5s infinite; }
+    .orb.speaking { border-color: #ea4b71; box-shadow: 0 0 20px rgba(234,75,113,0.3); }
+    .orb.processing { border-color: #f39c12; }
+    .orb.idle { border-color: #444; }
+    @keyframes orb-pulse { 0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.4); } 70% { box-shadow: 0 0 0 16px rgba(46,204,113,0); } 100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); } }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .voice-label { font-size: 13px; color: #888; }
+    .voice-toggle-btn { padding: 8px 20px; border-radius: 20px; font-size: 13px; }
+    .voice-toggle-btn.active { background: #2ecc71; }
+
+    /* ── VAD volume bar ── */
+    .volume-bar-wrap { width: 200px; height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
+    .volume-bar { height: 100%; width: 0%; background: #2ecc71; border-radius: 2px; transition: width 0.05s; }
+  </style>
+</head>
+<body>
+<div class="chat-container">
+
+  <!-- Header with mode toggle -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-dot"></div>
+      <span>n8n Agent</span>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-text-mode">💬 Text</button>
+      <button class="mode-btn" id="btn-voice-mode">🎙️ Voice</button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages" id="messages">
+    <div class="message-row bot">
+      <div class="message bot">Hello! Use Text mode to type or use the mic, and Voice mode for hands-free conversation.</div>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <!-- Text mode input -->
+  <div class="input-area" id="text-input-area">
+    <button type="button" id="mic-btn" title="Click to record">🎤</button>
+    <input type="text" id="input" placeholder="Type or speak a message..." autocomplete="off" />
+    <button type="button" id="send-btn">Send</button>
+  </div>
+
+  <!-- Voice mode panel -->
+  <div class="voice-panel" id="voice-panel">
+    <div class="volume-bar-wrap"><div class="volume-bar" id="volume-bar"></div></div>
+    <div class="orb idle" id="orb">🎙️</div>
+    <div class="voice-label" id="voice-label">Press Start to begin conversation</div>
+    <button class="voice-toggle-btn" id="voice-toggle-btn">Start Listening</button>
+  </div>
+
+</div>
+
+<script>
+  // ── API endpoints ──────────────────────────────────────────────────────────
+  const API_URL     = 'http://localhost:5678/webhook/chat-response';
+  const WHISPER_URL = 'http://localhost:5678/webhook/whisper-proxy';
+  const TTS_URL     = 'http://localhost:5678/webhook/tts-proxy';
+
+  // ── VAD settings ───────────────────────────────────────────────────────────
+  const SILENCE_THRESHOLD = 0.015;   // volume level below which = silence
+  const SILENCE_DURATION  = 1500;    // ms of silence before auto-stopping
+  const MIN_SPEECH_MS     = 400;     // ignore recordings shorter than this
+
+  // ── Shared state ───────────────────────────────────────────────────────────
+  const messagesEl  = document.getElementById('messages');
+  const statusEl    = document.getElementById('status');
+  const inputEl     = document.getElementById('input');
+  const sendBtn     = document.getElementById('send-btn');
+  const micBtn      = document.getElementById('mic-btn');
+
+  function setStatus(msg) { statusEl.textContent = msg; }
+
+  function addUserMessage(text) {
+    const row = document.createElement('div');
+    row.className = 'message-row user';
+    const bubble = document.createElement('div');
+    bubble.className = 'message user';
+    bubble.textContent = text;
+    row.appendChild(bubble);
+    messagesEl.appendChild(row);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function addBotMessage(text) {
+    const row = document.createElement('div');
+    row.className = 'message-row bot';
+    const bubble = document.createElement('div');
+    bubble.className = 'message bot';
+    bubble.textContent = text;
+    const ttsBtn = document.createElement('button');
+    ttsBtn.className = 'tts-btn';
+    ttsBtn.innerHTML = '🔊 Play';
+    ttsBtn.addEventListener('click', () => playTTS(text, ttsBtn));
+    row.appendChild(bubble);
+    row.appendChild(ttsBtn);
+    messagesEl.appendChild(row);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return row;
+  }
+
+  async function playTTS(text, btn) {
+    if (btn) { btn.disabled = true; btn.classList.add('playing'); btn.innerHTML = '⏳ Loading...'; }
+    try {
+      const res = await fetch(TTS_URL + '?text=' + encodeURIComponent(text));
+      if (!res.ok) throw new Error('TTS fetch failed');
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      if (btn) btn.innerHTML = '🔊 Playing...';
+      await new Promise(resolve => { audio.onended = resolve; audio.play(); });
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('TTS error', e);
+    } finally {
+      if (btn) { btn.disabled = false; btn.classList.remove('playing'); btn.innerHTML = '🔊 Play'; }
+    }
+  }
+
+  async function sendToAgent(text) {
+    const res  = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
+    const data = await res.json();
+    return data.output || 'No response from agent.';
+  }
+
+  async function transcribeAudio(blob) {
+    const formData = new FormData();
+    formData.append('audio_file', blob, 'recording.webm');
+    const res  = await fetch(WHISPER_URL, { method: 'POST', body: formData });
+    const data = await res.json();
+    return data.text?.trim() || '';
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // TEXT MODE
+  // ════════════════════════════════════════════════════════════
+  let textMediaRecorder = null;
+  let textAudioChunks   = [];
+
+  function setTextUIBusy(busy) {
+    inputEl.disabled  = busy;
+    sendBtn.disabled  = busy;
+    micBtn.disabled   = busy;
+  }
+
+  async function textSendMessage(text) {
+    if (!text.trim()) return;
+    addUserMessage(text);
+    inputEl.value = '';
+    setTextUIBusy(true);
+    setStatus('Agent is thinking...');
+    try {
+      const reply = await sendToAgent(text);
+      addBotMessage(reply);
+      setStatus('');
+    } catch (e) {
+      addBotMessage('Error: Could not reach the agent.');
+      setStatus('');
+    } finally {
+      setTextUIBusy(false);
+      inputEl.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', () => textSendMessage(inputEl.value.trim()));
+  inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') textSendMessage(inputEl.value.trim()); });
+
+  micBtn.addEventListener('click', async () => {
+    if (textMediaRecorder && textMediaRecorder.state === 'recording') {
+      textMediaRecorder.stop(); return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      textMediaRecorder = new MediaRecorder(stream);
+      textAudioChunks = [];
+      textMediaRecorder.ondataavailable = e => textAudioChunks.push(e.data);
+      textMediaRecorder.onstop = async () => {
+        micBtn.classList.remove('recording'); micBtn.textContent = '🎤';
+        stream.getTracks().forEach(t => t.stop());
+        setStatus('Transcribing...'); setTextUIBusy(true);
+        try {
+          const blob = new Blob(textAudioChunks, { type: 'audio/webm' });
+          const transcript = await transcribeAudio(blob);
+          if (transcript) { setStatus(''); setTextUIBusy(false); await textSendMessage(transcript); }
+          else { setStatus("Couldn't hear anything — try again."); setTextUIBusy(false); }
+        } catch (e) { setStatus('Whisper error: ' + e.message); setTextUIBusy(false); }
+      };
+      textMediaRecorder.start();
+      micBtn.classList.add('recording'); micBtn.textContent = '⏹';
+      setStatus('Recording... click ⏹ to stop');
+    } catch (e) { setStatus('Mic access denied: ' + e.message); }
+  });
+
+  // ════════════════════════════════════════════════════════════
+  // VOICE MODE — VAD loop
+  // ════════════════════════════════════════════════════════════
+  const orb            = document.getElementById('orb');
+  const voiceLabel     = document.getElementById('voice-label');
+  const voiceToggleBtn = document.getElementById('voice-toggle-btn');
+  const volumeBar      = document.getElementById('volume-bar');
+
+  let vadActive        = false;
+  let vadStream        = null;
+  let vadAudioCtx      = null;
+  let vadAnalyser      = null;
+  let vadRecorder      = null;
+  let vadChunks        = [];
+  let silenceTimer     = null;
+  let speechStarted    = false;
+  let speechStartTime  = 0;
+  let vadAnimFrame     = null;
+  let agentBusy        = false;   // prevents listening while agent is responding
+
+  function setOrbState(state, label) {
+    orb.className = 'orb ' + state;
+    voiceLabel.textContent = label;
+  }
+
+  async function startVAD() {
+    try {
+      vadStream   = await navigator.mediaDevices.getUserMedia({ audio: true });
+      vadAudioCtx = new AudioContext();
+      vadAnalyser = vadAudioCtx.createAnalyser();
+      vadAnalyser.fftSize = 512;
+      const source = vadAudioCtx.createMediaStreamSource(vadStream);
+      source.connect(vadAnalyser);
+      vadLoop();
+      setOrbState('listening', 'Listening... speak now');
+    } catch (e) {
+      setStatus('Mic access denied: ' + e.message);
+      stopVAD();
+    }
+  }
+
+  function vadLoop() {
+    if (!vadActive) return;
+    const buf = new Float32Array(vadAnalyser.fftSize);
+    vadAnalyser.getFloatTimeDomainData(buf);
+    const volume = Math.sqrt(buf.reduce((s, v) => s + v * v, 0) / buf.length);
+
+    // Update volume bar
+    volumeBar.style.width = Math.min(volume / 0.1 * 100, 100) + '%';
+
+    if (agentBusy) { vadAnimFrame = requestAnimationFrame(vadLoop); return; }
+
+    if (volume > SILENCE_THRESHOLD) {
+      // ── Sound detected ────────────────────────
+      if (!speechStarted) {
+        speechStarted   = true;
+        speechStartTime = Date.now();
+        vadChunks       = [];
+        vadRecorder     = new MediaRecorder(vadStream);
+        vadRecorder.ondataavailable = e => vadChunks.push(e.data);
+        vadRecorder.onstop = handleVADStop;
+        vadRecorder.start();
+        setOrbState('speaking', 'Speaking...');
+      }
+      clearTimeout(silenceTimer);
+      silenceTimer = null;
+    } else {
+      // ── Silence detected ──────────────────────
+      if (speechStarted && !silenceTimer) {
+        silenceTimer = setTimeout(() => {
+          if (vadRecorder && vadRecorder.state === 'recording') {
+            vadRecorder.stop();
+          }
+        }, SILENCE_DURATION);
+      }
+    }
+
+    vadAnimFrame = requestAnimationFrame(vadLoop);
+  }
+
+  async function handleVADStop() {
+    speechStarted = false;
+    clearTimeout(silenceTimer);
+    silenceTimer  = null;
+
+    const duration = Date.now() - speechStartTime;
+    if (duration < MIN_SPEECH_MS) {
+      // Too short — probably noise, resume listening
+      setOrbState('listening', 'Listening... speak now');
+      return;
+    }
+
+    agentBusy = true;
+    setOrbState('processing', 'Transcribing...');
+
+    try {
+      const blob       = new Blob(vadChunks, { type: 'audio/webm' });
+      const transcript = await transcribeAudio(blob);
+
+      if (!transcript) {
+        setOrbState('listening', 'Listening... speak now');
+        agentBusy = false;
+        return;
+      }
+
+      addUserMessage(transcript);
+      setOrbState('processing', 'Agent is thinking...');
+
+      const reply = await sendToAgent(transcript);
+      addBotMessage(reply);
+
+      setOrbState('speaking', 'Playing response...');
+      await playTTS(reply, null);   // play with no button reference
+
+    } catch (e) {
+      console.error('VAD pipeline error', e);
+      addBotMessage('Error: ' + e.message);
+    } finally {
+      agentBusy = false;
+      if (vadActive) setOrbState('listening', 'Listening... speak now');
+    }
+  }
+
+  function stopVAD() {
+    vadActive = false;
+    cancelAnimationFrame(vadAnimFrame);
+    clearTimeout(silenceTimer);
+    if (vadRecorder && vadRecorder.state === 'recording') vadRecorder.stop();
+    if (vadStream) vadStream.getTracks().forEach(t => t.stop());
+    if (vadAudioCtx) vadAudioCtx.close();
+    vadStream = vadAudioCtx = vadAnalyser = vadRecorder = null;
+    speechStarted = false;
+    agentBusy     = false;
+    volumeBar.style.width = '0%';
+    setOrbState('idle', 'Press Start to begin conversation');
+    voiceToggleBtn.textContent = 'Start Listening';
+    voiceToggleBtn.classList.remove('active');
+  }
+
+  voiceToggleBtn.addEventListener('click', async () => {
+    if (vadActive) {
+      stopVAD();
+    } else {
+      vadActive = true;
+      voiceToggleBtn.textContent = 'Stop';
+      voiceToggleBtn.classList.add('active');
+      await startVAD();
+    }
+  });
+
+  // Clicking the orb also toggles
+  orb.addEventListener('click', () => voiceToggleBtn.click());
+
+  // ════════════════════════════════════════════════════════════
+  // MODE SWITCHING
+  // ════════════════════════════════════════════════════════════
+  const btnTextMode    = document.getElementById('btn-text-mode');
+  const btnVoiceMode   = document.getElementById('btn-voice-mode');
+  const textInputArea  = document.getElementById('text-input-area');
+  const voicePanel     = document.getElementById('voice-panel');
+
+  btnTextMode.addEventListener('click', () => {
+    btnTextMode.classList.add('active');
+    btnVoiceMode.classList.remove('active');
+    textInputArea.style.display = 'flex';
+    voicePanel.classList.remove('visible');
+    if (vadActive) stopVAD();
+    setStatus('');
+  });
+
+  btnVoiceMode.addEventListener('click', () => {
+    btnVoiceMode.classList.add('active');
+    btnTextMode.classList.remove('active');
+    textInputArea.style.display = 'none';
+    voicePanel.classList.add('visible');
+    setStatus('');
+  });
+</script>
+</body>
+</html>
