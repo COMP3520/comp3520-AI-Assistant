@@ -1,13 +1,9 @@
-Here is a comprehensive Project Plan in `README.md` format, incorporating all your specified features, tools, and workflows.
-
-***
-
 # 🧠 AI Personal Operations Center (POC) - "The Second Brain"
 
-## 📖 Overview
-This project represents a local-first, privacy-focused **Agentic Operations Center**. It acts as an autonomous assistant capable of handling complex multimodal inputs (Voice, Text), executing secure system operations (SSH), managing personal finance, and proactively organizing daily life through a "Supervisor" agent architecture.
-
-The system is fully containerized using **Docker**, orchestrating **Ollama** (Local LLM), **n8n** (Workflow Automation), and various tool integrations into a unified, observable ecosystem.
+## 📖 Project Overview
+A local-first, privacy-focused agentic AI assistant built on **n8n**, **Ollama**, and **Docker**.
+It handles intelligent chat, secure SSH terminal execution, expense tracking with built-in charting,
+Google Workspace integration, and automated morning briefings — all running on your own machine.
 
 ***
 
@@ -17,127 +13,157 @@ The following diagram illustrates the flow of data between the User, the Supervi
 
 ```mermaid
 graph TD
-    %% User & UI
-    User([User]) -->|Text / Voice| UI[Web Chat UI]
+    User([👤 User]) -->|Text / Voice| UI[Chat UI\nchat.html served by n8n]
+    UI -->|POST /webhook/chat-response| RCV[Receive Msg]
+    UI -->|POST /webhook/whisper-proxy| WSP[Whisper STT Container]
+    UI -->|GET /webhook/tts-proxy| TTS[TTS Container :5000]
 
-    %% Orchestrator & LLM
-    UI -->|Request| Orchestrator[n8n Orchestrator / Supervisor Agent]
-    Orchestrator <-->|LLM Call| Ollama["Ollama (Llama 3.2)"]
+    RCV --> MEM[Read summary.md\nMEMORY_PATH]
+    MEM --> TC[Task Classifier Agent\nllama3.2]
 
-    %% Memory & Data
-    subgraph "Memory & Data"
-        VecDB[(Vector Store)]
-        ExpDB[(Expense DB)]
+    TC -->|command| CMD[Command Task Summarizer]
+    TC -->|normal| CC[Complexity Classifier\nllama3.2]
+    TC -->|expense| EXP[Expense Extractor Agent\nllama3.2]
+    TC -->|visualize| VIS[Get rows from DataTable]
+
+    CMD --> OS[OS Detection\nuname -s / env:OS via SSH]
+    OS --> MTA[Multi-Platform Terminal Assistant\nllama3.2]
+    MTA --> PCJ[Parse Command JSON]
+    PCJ --> APV{Approval Overlay\nin Chat UI}
+    APV -->|Approved| SSH[SSH Execute\nPrivate Key Auth]
+    APV -->|Denied| DEN[Denied Response]
+    SSH --> FMT[Format Result]
+
+    CC -->|Simple| SIM[Simple Task AI Agent\nllama3.2]
+    CC -->|Hard| HRD[Hard Task AI Agent\nqwen3:8b]
+
+    SIM --> TOOLS1[Google Workspace Tools\nCalendar · Docs · Sheets · Drive · Gmail · Tavily]
+    HRD --> TOOLS2[Google Workspace Tools\nCalendar · Docs · Sheets · Drive · Gmail · Tavily]
+
+    EXP --> FMT4[Format Response 4\namount · category · gain · date]
+    FMT4 --> DBQ{expenses Table\nexists?}
+    DBQ -->|Yes| INS[Insert Row\nn8n DataTable]
+    DBQ -->|No| CRT[Create expenses Table\nthen Insert Row]
+    INS --> RET[Return Response]
+    CRT --> RET
+
+    VIS --> AGG[JS Aggregation\nby category]
+    AGG --> CA2[Classifier Agent2\nGain or Loss]
+    CA2 -->|Gain| GC[gainChart\nQuickChart Pie PNG]
+    CA2 -->|Loss| LC[lossChart\nQuickChart Pie PNG]
+    GC --> RIMG[Respond to UI\nimage/png]
+    LC --> RIMG
+
+    CRON([⏰ 7 AM Cron]) --> GCAL[Get Today's Calendar\nGoogle Calendar]
+    GCAL --> GEML[Get Overnight Emails\nGmail urgent/HSBC]
+    GEML --> BLD[Build Briefing Context\nJS node]
+    BLD --> MAA[Morning Analyst Agent\nllama3.2]
+    MAA --> SND[Send Morning Briefing\nGmail]
+
+    subgraph Memory
+        SUMMD[summary.md]
     end
-    Orchestrator <--> VecDB
-    Orchestrator <--> ExpDB
-
-    %% Tools
-    subgraph "Tools"
-        Whisper["Whisper (STT)"]
-        TTS["Kokoro / Coqui (TTS)"]
-        SSH[SSH Executor]
-        Sheets["Google Sheets / Excel"]
-        Mail["Gmail / Outlook"]
-        Docs["Google Docs / Word"]
-        Cal["Calendar"]
-    end
-
-    %% Voice Flow (UI-based)
-    Orchestrator --> Whisper
-    Whisper --> Orchestrator
-    Orchestrator --> TTS
-    TTS --> UI
-
-    %% Other Tool Connections
-    Orchestrator --> SSH
-    Orchestrator --> Sheets
-    Orchestrator --> Mail
-    Orchestrator --> Docs
-    Orchestrator --> Cal
-
-    %% Notifications via Terminal
-    Orchestrator -->|Status / Alerts| SSH
+    MEM <--> SUMMD
 ```
-
 
 ***
 
 ## 🛠 Tech Stack
 
-| Component | Technology | Docker Image |
-| :--- | :--- | :--- |
-| **Orchestration** | n8n | `n8nio/n8n:latest` |
-| **LLM Backend** | Ollama (Llama 3.2) | `ollama/ollama:latest` |
-| **Speech-to-Text** | Whisper (Local) | `openai/whisper` (or `faster-whisper-server`) |
-| **Text-to-Speech** | Kokoro / Coqui TTS | `ghcr.io/coqui-ai/tts` |
-| **Database** | PostgreSQL / Vector Store | `postgres:16` / `chromadb` |
-| **Code Sandbox** | Python Container | `python:3.11-slim` (with Pandas, Matplotlib) |
-| **Frontend UI** | Streamlit / Open WebUI | `streamlit` or `open-webui` |
-| **Observability** | LangFuse | `langfuse/langfuse` |
+| Component               | Technology                                                       | Docker Image                            |
+| ----------------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| Orchestration           | n8n                                                              | n8nio/n8n                               |
+| LLM (Simple/Classifier) | Ollama — llama3.2:latest                                         | ollama/ollama                           |
+| LLM (Hard tasks)        | Ollama — qwen3:8b                                                | ollama/ollama                           |
+| Chat UI                 | chat.html (inline in n8n webhook, vanilla JS)                    | /                                       |
+| Containerization        | Docker + Docker Compose                                          | /                                       |
+| Public Tunnel           | ngrok                                                            | ngrok/ngrok                             |
+| Speech-to-Text          | Whisper (self-hosted container)                                  | onerahmet/openai-whisper-asr-webservice |
+| Text-to-Speech          | TTS (self-hosted container on port 5000)                         | synesthesiam/wyoming-piper              |
+| Integrations            | Gmail, Google Calendar, Google Docs, Google Sheets, Google Drive | /                                       |
+| Web Search              | Tavily                                                           | /                                       |
+| SSH Execution           | OpenSSH (private key auth, Windows/macOS/Linux)                  | /                                       |
+| Memory                  | summary.md file via $env.MEMORY_PATH                             | /                                       |
+| Expense DB              | n8n built-in DataTable (table name: expenses)                    | /                                       |
+| Chart Generation        | n8n built-in QuickChart node (pie charts, PNG output)            | /                                       |
 
 ***
 
 ## 🚀 Core Features & Workflows
 
-Tools: 
-- google sheet/ excel 
-- SSH excute terminal
-- Gmail/ outlook
-- Whatsapp/ telegram 
-- Word/ google doc
-- Calendar
+### 🔧 Tools Available to Agents
+- **Gmail** — read messages, send emails
+- **Google Calendar** — create events, list events
+- **Google Docs** — get / update documents
+- **Google Sheets** — get rows, append/update rows, create sheets
+- **Google Drive** — search files and folders
+- **Tavily** — web search
+- **SSH Terminal** — execute shell commands on host machine (dedicated pipeline)
+- **n8n DataTable** — read / write expenses database
+- **n8n QuickChart** — generate pie charts (PNG)
 
-### 1. 🎙️ Multimodal Voice Interface ("Walk & Talk")
-**Goal:** Hands-free interaction while walking.
-*   **Workflow:**
-    1.  **Input:** User sends Voice Note via Telegram.
-    2.  **Transcribe:** n8n Webhook receives audio $\to$ sends to **Whisper Container**.
-    3.  **Think:** Transcribed text $\to$ **Ollama** (Llama 3.2) for processing.
-    4.  **Speak:** LLM response $\to$ **Kokoro TTS** $\to$ Audio File.
-    5.  **Output:** n8n sends Audio File back to Telegram as a reply.
+### 1. 🎙️ Telegram Voice Interface ("Walk & Talk")
+**Goal:** Hands-free interaction while walking via Telegram.
+- **Input:** User sends Voice Note via **Telegram** (not yet connected; currently browser-only)
+- **Transcribe:** n8n Webhook receives audio → Whisper Container
+- **Think:** Transcript returned to Chat UI → auto-sent to `/webhook/chat-response` → **Task Classifier Agent** → Ollama (llama3.2 / qwen3:8b)
+- **Speak:** LLM response → **Kokoro TTS** → Audio file
+- **Output:** n8n sends audio file back to Telegram as a reply
 
 ### 2. 👮 Supervisor & Sub-Agents Pattern
 **Goal:** Break down complex tasks into atomic actions.
-*   **Supervisor Agent:** Analyzes intent and routes to specific workers.
-    *   **Worker A (Search):** RAG search over emails/docs.
-    *   **Worker B (Analyst):** Uses "Code Interpreter" to analyze data.
-    *   **Worker C (Writer):** Formats final output (PDF/Markdown).
+- **Supervisor Agent:** Task Classifier Agent (llama3.2) analyzes intent and routes to specific workers
+  - **Worker A (Command):** Multi-Platform Terminal Assistant — executes shell commands via SSH
+  - **Worker B (Simple Task):** Simple Task AI Agent (llama3.2) — handles factual lookups and lightweight tasks
+  - **Worker C (Hard Task):** Hard Task AI Agent (qwen3:8b) — handles reasoning, multi-step logic, and coding
+  - **Worker D (Expense):** Expense Extractor AI Agent (llama3.2) — parses and logs expense transactions
+  - **Worker E (Visualize):** QuickChart pipeline — aggregates DataTable and renders pie charts
 
-### 3. 🛡️ Secure SSH & Human-in-the-Loop
-**Goal:** Execute terminal commands safely without accidental destruction.
-*   **Security Layer:**
-    1.  **Draft:** Agent proposes `rm -rf /logs`.
-    2.  **Critic Audit:** A separate "Critic" model prompt: *"User wants to run `rm -rf /logs`. Is this safe? Respond YES/NO."*
-    3.  **Human Gate:** If Critic is unsure or command is high-risk $\to$ Send Telegram Button: **[Approve] / [Deny]**.
-    4.  **Execution:** Only runs upon explicit click.
+### 3. 🔒 Secure SSH & Human-in-the-Loop
+**Goal:** Execute terminal commands safely with user approval.
+- **Draft:** Command Task Summarizer (llama3.2) rewrites user intent into a plain English task → Multi-Platform Terminal Assistant (llama3.2) generates the correct shell command per OS (Windows/macOS/Linux)
+- **Risk Assessment:** Command is classified as 🟢 low / 🟡 medium / 🔴 high with a reason
+- **Human Gate:** Chat UI shows an Approval Overlay with command, description, and risk — user clicks **[Approve] / [Deny]**
+- **Execution:** SSH node runs command via private key only upon explicit approval
+- **OS Detection:** Runs `uname -s` (macOS/Linux) and `$env:OS` (Windows) in parallel to detect host OS
 
-### 4. 🧠 Long-Term Memory (Context Preservation)
+### 4. 🧠 Long-Term Memory
 **Goal:** Continuity across sessions.
-*   **Session Start:** Workflow reads `Summary.md` (high-level user profile) before processing the first query.
-*   **Session End (Batch):** Every 10 turns, a background job summarizes the interaction and updates `user_profiles` in the Vector Store.
-*   **Recall:** Uses semantic search to retrieve "User preferences for Python projects" when relevant.
+- **Session Start:** Workflow reads `summary.md` (user profile) via `$env.MEMORY_PATH` before processing every query
+- **On Every Message:** Memory Updater (llama3.2) rewrites and saves an updated `summary.md` in parallel with the agent response — not at session end
+- Profile stores projects, preferences, schedule context, and study interests
 
-### 5. 💰 Expenditure Tracking & Visualization
+### 5. 💰 Expense Tracker
 **Goal:** Frictionless expense logging with visual insights.
-*   **Input:** User texts: *"Spent $50 on lunch."*
-*   **Extraction:** Agent extracts `{"amount": 50, "category": "Food", "date": "2025-01-27"}`.
-*   **Storage:** Appends to SQL Database or Google Sheet.
-*   **Visualization:**
-    *   **Trigger:** User asks *"Show my monthly spending."*
-    *   **Action:** Python Sandbox queries DB $\to$ Generates Pie Chart (`matplotlib`) $\to$ Saves image.
-    *   **Output:** Image sent to Chat UI / Telegram.
+- **Input:** User texts naturally, e.g. *"Spent $50 on lunch"*
+- **Extraction:** Expense Extractor Agent parses `{"amount": 50, "category": "Food", "date": "...", "gain": false}`
+- **Storage:** Appended to **n8n's built-in DataTable** (`expenses` table); auto-created if absent
+- **Visualization:**
+  - **Trigger:** User asks *"Show my spending chart"*
+  - **Action:** Reads all rows from DataTable → JS node aggregates totals by category → Classifier Agent2 picks Gain or Loss
+  - **Output:** **n8n QuickChart node** generates a pie chart (PNG) returned directly to Chat UI
 
-### 6. 🌅 "Morning Analyst" Briefing
+### 6. 🌅 Morning Analyst Briefing
 **Goal:** Executive summary delivered at 7:00 AM.
-*   **Trigger:** Cron Schedule (07:00).
-*   **Data Sources:**
-    *   **Calendar:** Fetch today's events.
-    *   **Gmail:** Filter for "Urgent" or domain `*@hsbc.com` received overnight.
-    *   **Markets:** Python script calls `yfinance` (S&P 500 close, HKD/USD).
-*   **Synthesis:** Agent generates a structured briefing with "Action Items".
+- **Trigger:** Cron schedule — every day at 7:00 AM
+- **Data Sources:**
+  - **Calendar:** Fetches today's events from Google Calendar
+  - **Gmail:** Filters for `urgent` or `@hsbc.com` emails received overnight (last 12 hours)
+- **Synthesis:** Morning Analyst Agent (llama3.2) generates a structured briefing with: Markets, Today's Schedule, Overnight Emails, Action Items Before Noon
+- **Output:** Briefing delivered via Gmail to configured address
 
 ***
+
+## 📁 Key Files
+
+| File | Purpose |
+|:---|:---|
+| `Main Workflow.json` | Full n8n workflow (all nodes + connections) |
+| `brian/memory/summary.md` | Persistent user profile / memory file |
+| `brian/n8n/SSH setup.md` | SSH configuration guide |
+| `docker-compose.yml` | Container orchestration |
+| `Windows_Chat.bat` | Windows launcher for Chat UI |
+| `MAC_Chat.command` | macOS launcher for Chat UI |
 
 ## 📂 Folder Structure
 
