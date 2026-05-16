@@ -168,20 +168,32 @@ graph TD
 ## 📂 Folder Structure
 
 ```text
-/ai-poc-project
-├── docker-compose.yml       # Orchestrates n8n, ollama, whisper, db
-├── .env                     # API Keys (Telegram, Google, OpenAI if needed)
-├── /n8n_workflows           # JSON exports of n8n flows
-│   ├── supervisor_agent.json
-│   ├── voice_pipeline.json
-│   └── morning_briefing.json
-├── /python_sandbox          # Scripts for code interpreter
-│   ├── market_data.py
-│   └── generate_chart.py
-├── /memory                  # Local storage for context
-│   ├── summary.md
-│   └── vector_store/
-└── /data                    # Persistent volume data
+comp3520-AI-Assistant/
+├── .devcontainer/
+│   └── devcontainer.json        # VS Code Dev Container configuration
+├── brian/
+│   ├── memory/
+│   │   ├── history.jsonl        # Persistent conversation history log
+│   │   ├── summary.md           # Active user profile / long-term memory
+│   │   └── summary.md.backup    # Backup of previous memory state
+│   └── n8n/
+│       ├── .n8n/
+│       │   ├── config           # n8n instance configuration
+│       │   ├── database.sqlite  # n8n workflow & credential database
+│       │   └── n8nEventLog*.log # n8n runtime event logs
+│       ├── .env                 # Environment variables (API keys, paths)
+│       ├── chat.html            # Main Chat UI (vanilla JS, served via n8n webhook)
+│       ├── chat_noVM.html       # Old version Chat UI (no voice mode)
+│       ├── docker-compose.yml   # Docker stack (n8n, Ollama, Whisper, TTS, ngrok)
+│       ├── ngrok.yml            # ngrok tunnel configuration
+│       ├── requirements.txt     # Python dependencies
+│       ├── start_ngrok.sh       # Shell script to launch ngrok tunnel
+│       └── streamlit_app.py     # Streamlit UI alternative
+├── Main Workflow.json           # Full exported n8n workflow
+├── DEPLOYMENT_GUIDE.md          # Step-by-step deployment instructions
+├── MAC_Chat.command             # macOS one-click launcher for Chat UI
+├── SSH setup.md         # SSH key configuration guide
+└── Windows_Chat.bat             # Windows one-click launcher for Chat UI
 ```
 
 ***
@@ -215,48 +227,43 @@ To ensure manageable development, the project is divided into three equal worklo
 
 ### Part 1: Core Infrastructure & Basic Orchestration
 **Focus:** Setting up the "Body" (Docker/n8n) and "Brain" (Ollama) to establish basic communication.
-*   [ ] **Infrastructure:** Configure `docker-compose.yml` with **n8n**, **Ollama** (pull `llama3.2`), **PostgreSQL**, and **LangFuse**.
-*   [ ] **Interface:** Connect **Telegram Bot API** to n8n Webhook for text-based chat.
-*   [ ] **Orchestration:** Build the foundational **Supervisor Agent** node in n8n to route basic "Chat" vs. "Task" intents.
-*   [ ] **Observability:** Initialize **LangFuse** to trace LLM thoughts and debug the initial agent logic.
-*   [ ] **Interface:** Make up and design the UI interface for the project ( streamlit/ Javascript) 
+*   [x] **Infrastructure:** Configure `docker-compose.yml` with **n8n** and **Ollama** (models: `llama3.2`, `qwen3:8b`).
+*   [x] **Interface:** Design the UI interface for the project (vanilla JavaScript Chat UI served via n8n webhook).
+*   [x] **Orchestration:** Build the foundational **Task Classifier Agent** node in n8n to route `command` / `normal` / `expense` / `visualize` intents via `Agent Switch Task`.
+*   [x] **Dual LLM:** Simple tasks use `llama3.2`, hard/reasoning tasks route to `qwen3:8b` via a **Complexity Classifier** agent.
 
 ### Part 2: Tools, Security & Analytics
 **Focus:** Giving the agent "Hands" (SSH/Tools) and "Eyes" (Google/Data) to perform work.
-*   [ ] **Integrations:** Configure **Google Cloud Console** credentials for Gmail, Calendar, and Sheets access.
-*   [ ] **Secure Ops:** Implement the **SSH Tool** with the "Human-in-the-Loop" Telegram button flow (Draft $\to$ Approve $\to$ Execute).
-*   [ ] **Data Analysis:** Set up the **Python Sandbox** container and write the script for generating **Expense Charts** (`matplotlib`).
-*   [ ] **Workflow:** Create the **"Morning Analyst"** automation to aggregate Calendar and Gmail data into a daily text summary.
+*   [x] **Integrations:** Configure **Google Cloud Console** credentials for Gmail, Calendar, Sheets, Docs, and Drive access (all connected as AI tools to both Simple and Hard Task agents).
+*   [x] **Secure Ops:** Implement the **SSH Tool** with the "Human-in-the-Loop" approval flow (Draft → Approve → Execute), with multi-OS support (Windows / macOS / Linux) and 🟢/🟡/🔴 risk classification.
+*   [x] **Approval Overlay UI:** In-browser Human-in-the-Loop approval dialog with command preview, risk badge, Approve/Deny buttons — no Telegram dependency.
+*   [x] **OS Detection:** Parallel SSH probes (`uname -s` for macOS/Linux, `$env:OS` for Windows) to auto-detect host before generating shell commands.
+*   [x] **Data Analysis:** Set up the **Expense Database** (n8n DataTable) and chart generation via **QuickChart** (separate gain/loss pie charts, PNG output).
+*   [x] **Workflow:** Create the **"Morning Analyst"** automation — 7 AM cron → Google Calendar + Gmail (urgent/HSBC) → `llama3.2` briefing → sent via Gmail.
+*   [x] **Web Search:** Integrate **Tavily** search tool available to both Simple and Hard Task agents.
 
 ### Part 3: Voice, Memory & Advanced Synthesis
 **Focus:** Adding the "Ears/Voice" (Multimedia) and "Soul" (Long-term Context).
-*   [ ] **Multimedia Stack:** Deploy **Whisper** (STT) and **Kokoro/Coqui** (TTS) containers to the Docker stack.
-*   [ ] **Voice Pipeline:** Build the n8n workflow for **Audio Note $\to$ Transcript $\to$ LLM $\to$ Audio Reply**.
-*   [ ] **Long-Term Memory:** Implement the **Vector Store** (ChromaDB/Pgvector) logic to read/write user facts.
-*   [ ] **Context Injection:** Create the pre-prompt logic to read `summary.md` and inject user preferences into every new session.
+*   [x] **Multimedia Stack:** Deploy **Whisper** (STT at `whisper:9000`) and **TTS** (Piper at `tts:5000`) containers to the Docker stack.
+*   [x] **Voice Pipeline:** Build the n8n workflow for **Audio Note → Transcript → LLM → Audio Reply** (mic button in Chat UI → Whisper proxy → auto-send → TTS playback).
+*   [x] **Whisper Proxy & TTS Proxy:** Dedicated n8n webhook routes (`/whisper-proxy`, `/tts-proxy`) proxy browser requests to internal Docker containers with CORS headers.
+*   [x] **Context Injection:** Read `summary.md` and inject user preferences into every new session via the **Extract from File** node feeding into agents.
+*   [x] **Memory Auto-Update:** `Memory Updater` (llama3.2) rewrites and saves `summary.md` in parallel on every message — not just at session end.
+*   [x] **Expense Gain/Loss Split:** `Classifier Agent2` routes visualize requests to separate **gainChart** vs **lossChart** QuickChart pie renders.
 
 ***
 
 ## 🚦 Getting Started
 
-Here’s a well-structured **README setup section** you can add (or replace) in your project's README.md. It focuses on a clear, step-by-step guide covering:
-
-- Docker setup (assuming `docker-compose.yml` exists in the repo)
-- n8n credentials configuration (including Google OAuth)
-- ngrok setup (for exposing n8n/Streamlit/Telegram webhooks publicly)
-- Streamlit access & run
+This project runs as a Docker-based stack with n8n (workflow automation), Ollama (local LLM), Whisper (speech-to-text), and Coqui TTS (text-to-speech).
 
 ```markdown
-## Quick Start – Local Development Setup
-
-This project runs as a Docker-based stack with n8n (workflow automation), Ollama (local LLM), Streamlit (UI), and optional public exposure via ngrok.
-
 ### Prerequisites
 
 - Docker & Docker Compose installed  
   → https://docs.docker.com/get-docker/
 - Git
-- (Optional but recommended for public access / Telegram bot)  
+- (Optional but recommended for Google OAuth public redirect)  
   → ngrok account (free tier works)
 
 ### Step 1: Clone the Repository
@@ -268,16 +275,14 @@ cd comp3520-AI-Assistant
 
 ### Step 2: Prepare Environment Variables (.env)
 
-
-
 **Important – Google Credentials setup**  
-1. Go to https://console.cloud.google.com/apis/credentials  
-2. Create OAuth 2.0 Client ID → Web application  
-3. Add authorized redirect URIs:  
-   - `http://localhost:5678/rest/oauth2-credential/callback` (local)  
-   - Later: your-ngrok-URL/rest/oauth2-credential/callback  
-4. Copy **Client ID** and **Client Secret** → paste into `.env`  
-5. Enable APIs: Gmail API, Google Calendar API, Google Sheets API, Google Drive API (depending on your workflows)
+1. Go to https://console.cloud.google.com/apis/credentials
+2. Create OAuth 2.0 Client ID → Web application
+3. Add authorized redirect URI:
+   - `http://localhost:5678/rest/oauth2-credential/callback` (local)
+   - Later: `https://your-ngrok-url/rest/oauth2-credential/callback`
+4. Copy **Client ID** and **Client Secret** → configure in n8n Credentials tab
+5. Enable APIs: Gmail API, Google Calendar API, Google Sheets API, Google Docs API, Google Drive API
 
 ### Step 3: Start the Docker Stack
 
@@ -292,31 +297,46 @@ Check running containers:
 docker compose ps
 ```
 
+This will start:
+- **n8n** on port `5678`
+- **PostgreSQL** on port `5432` (n8n's backend database, internal only)
+- **Ollama** (LLM backend) on port `11434`
+- **Whisper** (STT) accessible on port `8000` (maps to internal port 9000)
+- **Coqui TTS** accessible on port `5010` (maps to internal port 5000)
+
 ### Step 4: Initialize Ollama Model (once)
 
 ```bash
-docker exec -it ollama ollama pull llama3.2   # or llama3.2:3b if you want smaller
-# or run interactively:
-docker exec -it ollama ollama run llama3.2
+# Pull both models used by the agent
+docker exec -it ollama ollama pull llama3.2
+docker exec -it ollama ollama pull qwen3:8b
 ```
+
+- `llama3.2` — used for simple tasks, memory updates, and the Morning Briefing
+- `qwen3:8b` — used for complex reasoning tasks
 
 ### Step 5: Configure n8n (Core Workflows + Credentials)
 
 1. Open n8n UI → http://localhost:5678  
-   Login with credentials from `.env` (admin / your-password)
+   Create an account and login.
 
-2. **Set up credentials** (in n8n → Credentials tab):  
-   - Telegram → Bot token from `.env`  
-   - Google → OAuth2 → use the Client ID/Secret from `.env`  
+2. **Set up credentials** (n8n → Credentials tab):
+   - **Ollama** → point to internal Docker host
+   - **Google OAuth2** → use Client ID/Secret from Step 2  
      → n8n will guide you through Google sign-in & consent  
-   - (Optional) OpenAI / other services if used
+     → covers Gmail, Calendar, Docs, Sheets, Drive
+   - **Tavily** → API key from https://tavily.com
+   - **SSH Private Key/ Password** → your host machine's private key (for SSH tool). If you use private key, please refer to the SSH setup.md for more detail.
+
 
 3. **Import workflows**  
-   - Go to Workflows → ... → Import from File/URL  
-   - Import files from `n8n_workflows/` folder (e.g. `supervisor_agent.json`, `voice_pipeline.json`, `morning_briefing.json`)  
-   - Activate them
+   - Go to Workflows → Import from File
+   - Import `Main Workflow.json` from the repository root
+   - Activate the workflow
 
-4. Test a simple workflow (e.g. Telegram trigger → LLM → reply)
+4. **Access the Chat UI**
+   - Open http://localhost:5678/webhook/chat in your browser
+   - You should see the dark-themed chat interface with mic button
 
 ### Step 6: Expose Services Publicly with ngrok (Telegram webhook, testing, etc.)
 
@@ -363,10 +383,13 @@ You should see the chat interface / dashboard for interacting with the AI assist
 
 ### Troubleshooting
 
-- n8n not starting? Check logs: `docker compose logs n8n`  
-- Google OAuth fails? Double-check redirect URI matches exactly  
-- Ollama slow? Make sure you pulled the model  
-- Ports conflict? Change them in `docker-compose.yml`
+- **n8n not starting?** → `docker compose logs n8n`
+- **Whisper not responding?** → `docker compose logs whisper` — accessible on port `8000`
+- **TTS silent?** → `docker compose logs tts` (Coqui TTS) — accessible on port `5010`
+- **Ollama models missing?** → `docker exec -it ollama ollama list` — confirm both `llama3.2` and `qwen3:8b` are pulled
+- **Google OAuth fails?** → Double-check redirect URI matches exactly
+- **Memory not persisting?** → Ensure `brian/memory/summary.md` exists at your project root (mounted via `./../../`)
+- **Ports conflict?** → Adjust port mappings in `docker-compose.yml`
 
 Enjoy your local-first AI Personal Operations Center! 🚀
 ```
